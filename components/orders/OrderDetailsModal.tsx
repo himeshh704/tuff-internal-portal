@@ -181,17 +181,62 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
 
           {/* ORIGINAL ORDER SLIP PREVIEW */}
           {order.slip_url && (
-            <div className="p-4 bg-surface-container-low/40 rounded-xl border border-outline-variant/30 space-y-2">
-              <span className="text-xs font-extrabold text-on-surface uppercase tracking-wider block">
-                Original Order Slip Document
-              </span>
-              <div className="rounded-lg overflow-hidden border border-outline-variant/60 max-h-56">
-                <img
-                  src={order.slip_url}
-                  alt="Order Slip"
-                  className="w-full h-full object-cover"
-                />
+            <div className="p-4 bg-surface-container-low/40 rounded-xl border border-outline-variant/30 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-amber-700" />
+                  <span className="text-xs font-extrabold text-on-surface uppercase tracking-wider">
+                    Original Order Slip Document
+                  </span>
+                </div>
+                <a
+                  href={order.slip_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs text-amber-800 hover:text-amber-950 font-bold underline flex items-center gap-1 bg-amber-100 px-2.5 py-1 rounded-md border border-amber-300"
+                >
+                  Open Original File / Download
+                </a>
               </div>
+
+              {order.slip_url.startsWith('data:image') ||
+              order.slip_url.match(/\.(jpg|jpeg|png|webp|gif)($|\?)/i) ||
+              order.slip_url.startsWith('/uploads/') ||
+              order.slip_url.startsWith('http') ? (
+                <div className="rounded-xl overflow-hidden border border-outline-variant/60 max-h-80 bg-slate-900 flex items-center justify-center p-2 group relative">
+                  <img
+                    src={order.slip_url}
+                    alt="Order Slip Document"
+                    className="max-h-76 w-auto object-contain rounded"
+                  />
+                  <a
+                    href={order.slip_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-bold gap-2 transition-opacity"
+                  >
+                    Click to Open Full High-Res Order Slip
+                  </a>
+                </div>
+              ) : (
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between text-xs text-amber-900">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-amber-700" />
+                    <div>
+                      <span className="font-bold block">Attached Document / PDF Slip</span>
+                      <span className="text-[10px] text-amber-700 font-mono">Original paper slip or CAD drawing file attached</span>
+                    </div>
+                  </div>
+                  <a
+                    href={order.slip_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg text-xs"
+                  >
+                    View Document
+                  </a>
+                </div>
+              )}
             </div>
           )}
         </div>

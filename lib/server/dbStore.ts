@@ -137,6 +137,63 @@ export const serverDb = {
     );
   },
 
+  assignWork: (
+    orderId: string,
+    itemId: string,
+    workerId: string,
+    requiredQty: number
+  ): WorkAssignment => {
+    const dbData = loadDatabase();
+    const order = dbData.orders.find((o) => o.id === orderId || o.order_number === orderId);
+    if (!order) throw new Error('Order not found');
+
+    const item = order.items.find((i) => i.id === itemId);
+    if (!item) throw new Error('Order item not found');
+
+    const worker = dbData.users.find((u) => u.id === workerId);
+    if (!worker) throw new Error('Worker not found');
+
+    item.assigned_worker_id = worker.id;
+    item.assigned_worker_name = worker.name;
+    item.status = 'In Production';
+
+    if (order.status === 'New') {
+      order.status = 'In Production';
+    }
+
+    const assignment: WorkAssignment = {
+      id: `assign-${Date.now()}`,
+      order_id: order.id,
+      order_number: order.order_number,
+      customer_name: order.customer_name,
+      order_item_id: item.id,
+      item_name: item.item_name,
+      dimensions: item.dimensions,
+      worker_id: worker.id,
+      worker_name: worker.name,
+      required_qty: requiredQty,
+      completed_qty: item.completed_qty || 0,
+      status: 'In Progress',
+      slip_url: order.slip_url,
+      assigned_at: new Date().toISOString(),
+    };
+
+    dbData.workAssignments.unshift(assignment);
+
+    dbData.activityLogs.unshift({
+      id: `act-${Date.now()}`,
+      order_number: order.order_number,
+      user_name: 'Vikram Singh',
+      user_role: 'supervisor',
+      action: 'Work Assigned',
+      details: `Assigned ${requiredQty} pcs of ${item.item_name} to ${worker.name}`,
+      created_at: new Date().toISOString(),
+    });
+
+    saveDatabase(dbData);
+    return assignment;
+  },
+
   updateWorkerQuantity: (
     assignmentId: string,
     addedQty: number,
@@ -222,6 +279,123 @@ export const serverDb = {
 
   getLogs: (): ActivityLog[] => {
     return loadDatabase().activityLogs;
+  },
+
+  createOrder: (orderData: {
+    customer_id: string;
+    customer_name: string;
+    customer_phone: string;
+    expected_delivery: string;
+    priority: Order['priority'];
+    notes?: string;
+    slip_url?: string;
+    items: {
+      item_name: string;
+      dimensions: string;
+      thickness: string;
+      required_qty: number;
+    }[];
+  }): Order => {
+    const dbData = loadDatabase();
+    const nextSeq = dbData.orders.length + 1;
+    const seqStr = nextSeq.toString().padStart(5, '0');
+    const orderNumber = `MAT-2026-${seqStr}`;
+    const orderId = `ord-${Date.now()}`;
+
+    const newItems = orderData.items.map((item, idx) => ({
+      id: `item-${orderId}-${idx + 1}`,
+      order_id: orderId,
+      item_name: item.item_name,
+      dimensions: item.dimensions,
+      thickness: item.thickness || '5mm',
+      required_qty: item.required_qty,
+      completed_qty: 0,
+      status: 'New' as const,
+    }));
+
+    const newOrder: Order = {
+      id: orderId,
+      order_number: orderNumber,
+      customer_id: orderData.customer_id,
+      customer_name: orderData.customer_name,
+      customer_phone: orderData.customer_phone,
+      order_date: new Date().toISOString().split('T')[0],
+      expected_delivery: orderData.expected_delivery,
+      priority: orderData.priority,
+      status: 'New',
+      notes: orderData.notes,
+      slip_url: orderData.slip_url,
+      items: newItems,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    dbData.orders.unshift(newOrder);
+
+    dbData.activityLogs.unshift({
+      id: `act-${Date.now()}`,
+      order_number: newOrder.order_number,
+      user_name: 'Rajesh Patel',
+      user_role: 'owner',
+      action: 'Order Created',
+      details: `Created ${orderNumber} for ${newOrder.customer_name} (${newItems.length} items)`,
+      created_at: new Date().toISOString(),
+    });
+
+    saveDatabase(dbData);
+    return newOrder;
+  },
+
+  addUser: (userData: {
+    name: string;
+    email: string;
+    passwordHash: string;
+    role: UserAccount['role'];
+    phone: string;
+    line_assigned?: string;
+  }): UserAccount => {
+    const dbData = loadDatabase();
+    const existing = dbData.users.find((u) => u.email.toLowerCase() === userData.email.toLowerCase());
+    if (existing) {
+      throw new Error(`A user account with email ${userData.email} already exists`);
+    }
+
+    const newUser: UserAccount = {
+      id: `user-${Date.now()}`,
+      name: userData.name,
+      email: userData.email,
+      passwordHash: userData.passwordHash || 'worker123',
+      role: userData.role,
+      phone: userData.phone,
+      line_assigned: userData.line_assigned,
+    };
+
+    dbData.users.push(newUser);
+    saveDatabase(dbData);
+    return newUser;
+  },
+
+  updateUser: (userId: string, updates: Partial<UserAccount>): UserAccount => {
+    const dbData = loadDatabase();
+    const user = dbData.users.find((u) => u.id === userId);
+    if (!user) throw new Error('User account not found');
+
+    if (updates.name) user.name = updates.name;
+    if (updates.email) user.email = updates.email;
+    if (updates.passwordHash) user.passwordHash = updates.passwordHash;
+    if (updates.role) user.role = updates.role;
+    if (updates.phone) user.phone = updates.phone;
+    if (updates.line_assigned !== undefined) user.line_assigned = updates.line_assigned;
+
+    saveDatabase(dbData);
+    return user;
+  },
+
+  deleteUser: (userId: string) => {
+    const dbData = loadDatabase();
+    dbData.users = dbData.users.filter((u) => u.id !== userId);
+    saveDatabase(dbData);
+    return true;
   },
 
   resetDataToZero: () => {

@@ -12,6 +12,8 @@ import {
   CheckCircle2,
   AlertTriangle,
   Truck,
+  Paperclip,
+  Trash2,
 } from 'lucide-react';
 
 interface OrdersViewProps {
@@ -23,6 +25,7 @@ interface OrdersViewProps {
   onAssignWorkModal: (order: Order) => void;
   onApproveWork: (assignmentId: string) => void;
   onDispatchOrder: (orderId: string) => void;
+  onDeleteOrder?: (orderId: string) => void;
 }
 
 export const OrdersView: React.FC<OrdersViewProps> = ({
@@ -34,6 +37,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
   onAssignWorkModal,
   onApproveWork,
   onDispatchOrder,
+  onDeleteOrder,
 }) => {
   const [selectedStatus, setSelectedStatus] = useState<string>('All');
 
@@ -160,9 +164,21 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                     >
                       {/* ORDER NUMBER */}
                       <td className="py-3.5 px-4">
-                        <span className="font-mono font-bold text-tertiary bg-blue-50 px-2 py-1 rounded border border-blue-200">
-                          {ord.order_number}
-                        </span>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-mono font-bold text-tertiary bg-blue-50 px-2 py-1 rounded border border-blue-200">
+                            {ord.order_number}
+                          </span>
+                          {ord.slip_url && (
+                            <button
+                              onClick={() => onSelectOrder(ord)}
+                              title="Attached Order Slip Document"
+                              className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 px-1.5 py-0.5 rounded"
+                            >
+                              <Paperclip className="w-3 h-3 text-amber-800" />
+                              <span>Slip</span>
+                            </button>
+                          )}
+                        </div>
                         <span className="block text-[10px] text-secondary font-mono mt-1">
                           Date: {ord.order_date}
                         </span>
@@ -277,6 +293,18 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                               <span>Dispatch</span>
                             </button>
                           )}
+
+                          <button
+                            onClick={() => {
+                              if (confirm(`Delete Order ${ord.order_number} for ${ord.customer_name}?`)) {
+                                if (onDeleteOrder) onDeleteOrder(ord.id);
+                              }
+                            }}
+                            title="Delete Order"
+                            className="p-1.5 rounded bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
                         </div>
                       </td>
                     </tr>

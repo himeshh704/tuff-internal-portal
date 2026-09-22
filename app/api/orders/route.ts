@@ -22,3 +22,29 @@ export async function GET() {
   const orders = serverDb.getOrders();
   return NextResponse.json({ orders });
 }
+
+export async function POST(request: Request) {
+  const session = await verifySession();
+
+  if (!session) {
+    return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+  }
+
+  if (session.role === 'worker') {
+    return NextResponse.json(
+      { error: 'Access Denied: Workers cannot create orders.' },
+      { status: 403 }
+    );
+  }
+
+  try {
+    const body = await request.json();
+    const order = serverDb.createOrder(body);
+    return NextResponse.json({ success: true, order });
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: err.message || 'Failed to create order' },
+      { status: 500 }
+    );
+  }
+}

@@ -104,6 +104,40 @@ class FactoryStore {
     return this.data.users;
   }
 
+  addUser(userData: {
+    name: string;
+    role: User['role'];
+    phone: string;
+    line_assigned?: string;
+  }): User {
+    const newUser: User = {
+      id: `user-${Date.now()}`,
+      name: userData.name,
+      role: userData.role,
+      phone: userData.phone,
+      line_assigned: userData.line_assigned,
+    };
+    this.data.users.push(newUser);
+    this.save();
+    return newUser;
+  }
+
+  updateUser(userId: string, updates: Partial<User>): User {
+    const user = this.data.users.find((u) => u.id === userId);
+    if (!user) throw new Error('User not found');
+    if (updates.name) user.name = updates.name;
+    if (updates.role) user.role = updates.role;
+    if (updates.phone) user.phone = updates.phone;
+    if (updates.line_assigned !== undefined) user.line_assigned = updates.line_assigned;
+    this.save();
+    return user;
+  }
+
+  deleteUser(userId: string) {
+    this.data.users = this.data.users.filter((u) => u.id !== userId);
+    this.save();
+  }
+
   // CUSTOMERS
   getCustomers(): Customer[] {
     return this.data.customers;
@@ -130,6 +164,32 @@ class FactoryStore {
 
   getOrderById(id: string): Order | undefined {
     return this.data.orders.find((o) => o.id === id || o.order_number === id);
+  }
+
+  deleteOrder(orderId: string) {
+    const ord = this.getOrderById(orderId);
+    if (!ord) return;
+    this.data.orders = this.data.orders.filter((o) => o.id !== orderId && o.order_number !== orderId);
+    this.data.workAssignments = this.data.workAssignments.filter(
+      (a) => a.order_id !== ord.id && a.order_number !== ord.order_number
+    );
+    this.logActivity({
+      order_id: ord.id,
+      order_number: ord.order_number,
+      user_name: 'Rajesh Patel',
+      user_role: 'owner',
+      action: 'Order Deleted',
+      details: `Deleted order ${ord.order_number} and all associated production tasks`,
+    });
+    this.save();
+  }
+
+  deleteAssignment(assignmentId: string) {
+    const asgn = this.data.workAssignments.find((a) => a.id === assignmentId);
+    if (asgn) {
+      this.data.workAssignments = this.data.workAssignments.filter((a) => a.id !== assignmentId);
+      this.save();
+    }
   }
 
   createOrder(orderData: {
@@ -242,6 +302,7 @@ class FactoryStore {
       required_qty: requiredQty,
       completed_qty: item.completed_qty || 0,
       status: 'In Progress',
+      slip_url: order.slip_url,
       assigned_at: new Date().toISOString(),
     };
 

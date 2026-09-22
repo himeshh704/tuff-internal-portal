@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { WorkAssignment, User } from '@/lib/types';
 import { db } from '@/lib/db';
-import { HardHat, PlusCircle, CheckCircle2, AlertCircle, X, ShieldAlert } from 'lucide-react';
+import { HardHat, PlusCircle, CheckCircle2, AlertCircle, X, ShieldAlert, Paperclip, FileText, ExternalLink } from 'lucide-react';
 
 interface WorkerMyWorkProps {
   worker: User;
@@ -17,12 +17,16 @@ export const WorkerMyWork: React.FC<WorkerMyWorkProps> = ({
   onRefresh,
 }) => {
   const [activeAssignment, setActiveAssignment] = useState<WorkAssignment | null>(null);
+  const [activeSlipUrl, setActiveSlipUrl] = useState<string | null>(null);
   const [addQty, setAddQty] = useState<number>(1);
   const [note, setNote] = useState<string>('');
   const [errorMsg, setErrorMsg] = useState<string>('');
 
   const workerAssignments = assignments.filter(
-    (a) => a.worker_id === worker.id && a.status !== 'Approved'
+    (a) =>
+      (a.worker_id === worker.id ||
+        a.worker_name.toLowerCase().trim() === worker.name.toLowerCase().trim()) &&
+      a.status !== 'Approved'
   );
 
   const handleOpenUpdateModal = (asgn: WorkAssignment) => {
@@ -121,10 +125,19 @@ export const WorkerMyWork: React.FC<WorkerMyWorkProps> = ({
                     <h3 className="text-lg font-extrabold text-on-surface tracking-tight leading-snug">
                       {asgn.customer_name}
                     </h3>
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
                       <span className="text-xs font-mono font-bold text-tertiary bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
                         {asgn.order_number}
                       </span>
+                      {asgn.slip_url && (
+                        <button
+                          onClick={() => setActiveSlipUrl(asgn.slip_url || null)}
+                          className="px-2 py-0.5 bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold rounded text-xs border border-amber-300 flex items-center gap-1"
+                        >
+                          <Paperclip className="w-3.5 h-3.5 text-amber-800" />
+                          <span>View Paper Slip / Drawing</span>
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -322,6 +335,69 @@ export const WorkerMyWork: React.FC<WorkerMyWorkProps> = ({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ORDER SLIP VIEW MODAL FOR WORKERS */}
+      {activeSlipUrl && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden p-4 space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3 text-white">
+              <div className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-amber-500" />
+                <h3 className="font-extrabold text-sm">Original Paper Order Slip / Drawing</h3>
+              </div>
+              <button
+                onClick={() => setActiveSlipUrl(null)}
+                className="p-1 text-slate-400 hover:text-white"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="max-h-[70vh] overflow-y-auto flex items-center justify-center bg-black/50 rounded-xl p-2">
+              {activeSlipUrl.startsWith('data:image') ||
+              activeSlipUrl.match(/\.(jpg|jpeg|png|webp|gif)($|\?)/i) ||
+              activeSlipUrl.startsWith('/uploads/') ||
+              activeSlipUrl.startsWith('http') ? (
+                <img
+                  src={activeSlipUrl}
+                  alt="Order Slip"
+                  className="max-h-[65vh] w-auto object-contain rounded"
+                />
+              ) : (
+                <div className="p-6 text-center text-white space-y-3">
+                  <FileText className="w-12 h-12 text-amber-500 mx-auto" />
+                  <p className="font-bold text-sm">PDF / Document Attached</p>
+                  <a
+                    href={activeSlipUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-block px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg text-xs"
+                  >
+                    Open Document Link
+                  </a>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-between items-center pt-2 text-xs">
+              <a
+                href={activeSlipUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1"
+              >
+                <ExternalLink className="w-4 h-4" /> Open Full Image in New Tab
+              </a>
+              <button
+                onClick={() => setActiveSlipUrl(null)}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

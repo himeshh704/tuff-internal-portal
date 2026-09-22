@@ -181,6 +181,11 @@ export default function Home() {
               onDispatchOrder={(ordId) => {
                 setActiveTab('dispatch');
               }}
+              onDeleteOrder={(ordId) => {
+                db.deleteOrder(ordId);
+                fetch(`/api/orders/${ordId}`, { method: 'DELETE' }).catch(() => {});
+                refreshData();
+              }}
             />
           )}
 

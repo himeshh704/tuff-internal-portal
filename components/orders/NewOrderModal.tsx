@@ -3,7 +3,17 @@
 import React, { useState } from 'react';
 import { Customer, PriorityLevel } from '@/lib/types';
 import { db } from '@/lib/db';
-import { X, Plus, Trash2, Upload, FileText, CheckCircle2 } from 'lucide-react';
+import {
+  X,
+  Plus,
+  Trash2,
+  Upload,
+  FileText,
+  CheckCircle2,
+  Image as ImageIcon,
+  Loader2,
+  ExternalLink,
+} from 'lucide-react';
 
 interface NewOrderModalProps {
   isOpen: boolean;
@@ -32,9 +42,11 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
   );
   const [priority, setPriority] = useState<PriorityLevel>('Normal');
   const [notes, setNotes] = useState('');
-  const [slipUrl, setSlipUrl] = useState<string>(
-    'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600'
-  );
+
+  // File Upload State
+  const [slipUrl, setSlipUrl] = useState<string>('');
+  const [slipFileName, setSlipFileName] = useState<string>('');
+  const [uploading, setUploading] = useState<boolean>(false);
 
   // Items
   const [items, setItems] = useState<
@@ -90,6 +102,52 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
     setItems(items.filter((_, idx) => idx !== index));
   };
 
+  // REAL FILE UPLOAD HANDLER
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setSlipFileName(file.name);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        // Fallback to local Base64 URL preview if API fails
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          setSlipUrl(event.target?.result as string);
+          setUploading(false);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        setSlipUrl(data.url);
+        setUploading(false);
+      }
+    } catch (err) {
+      // Fallback to FileReader
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setSlipUrl(event.target?.result as string);
+        setUploading(false);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveSlip = () => {
+    setSlipUrl('');
+    setSlipFileName('');
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -113,7 +171,7 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
       return;
     }
 
-    db.createOrder({
+    const orderPayload = {
       customer_id: targetCustId,
       customer_name: finalCustName,
       customer_phone: finalCustPhone,
@@ -122,14 +180,24 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
       notes,
       slip_url: slipUrl,
       items,
-    });
+    };
+
+    // Save to local reactive store
+    db.createOrder(orderPayload);
+
+    // Sync to server API in background
+    fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(orderPayload),
+    }).catch((err) => console.error('Server sync error:', err));
 
     onOrderCreated();
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden my-8">
         {/* Header */}
         <div className="bg-surface-container-low px-6 py-4 border-b border-outline-variant/40 flex items-center justify-between">
@@ -358,11 +426,84 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
             </div>
           </div>
 
-          {/* SECTION 4: NOTES & ORIGINAL ORDER SLIP */}
+          {/* SECTION 4: REAL ORDER SLIP UPLOAD & NOTES */}
           <div className="space-y-3 bg-surface-container-low/40 p-4 rounded-xl border border-outline-variant/30">
             <h4 className="text-xs font-extrabold text-on-surface uppercase tracking-wider">
-              4. Special Notes & Order Slip Attachment
+              4. Original Order Slip File Attachment & Notes
             </h4>
+
+            <div>
+              <label className="block text-xs font-bold text-secondary mb-1">
+                Attach Original Order Slip (Photo / PDF)
+              </label>
+
+              {!slipUrl ? (
+                <div className="relative border-2 border-dashed border-outline-variant/80 hover:border-primary rounded-xl p-4 text-center bg-surface-container-lowest transition-colors">
+                  <input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    onChange={handleFileUpload}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <div className="flex flex-col items-center justify-center space-y-1">
+                    {uploading ? (
+                      <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                    ) : (
+                      <Upload className="w-6 h-6 text-primary" />
+                    )}
+                    <span className="text-xs font-bold text-on-surface">
+                      {uploading ? 'Uploading slip...' : 'Click or drop order slip image / PDF here'}
+                    </span>
+                    <span className="text-[10px] text-secondary font-mono">
+                      PNG, JPG, WEBP, or PDF up to 10MB
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3 bg-surface-container-lowest border border-outline-variant/60 rounded-xl space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2 overflow-hidden">
+                      <ImageIcon className="w-4 h-4 text-primary shrink-0" />
+                      <span className="font-mono font-bold text-on-surface truncate">
+                        {slipFileName || 'Uploaded Order Slip'}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRemoveSlip}
+                      className="text-red-600 hover:text-red-800 p-1 text-xs font-bold flex items-center gap-1"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      Remove
+                    </button>
+                  </div>
+
+                  {/* Thumbnail Preview */}
+                  {slipUrl.startsWith('data:image') || slipUrl.endsWith('.jpg') || slipUrl.endsWith('.png') || slipUrl.startsWith('/uploads/') ? (
+                    <div className="w-full h-32 rounded-lg overflow-hidden border border-outline-variant/40 bg-black/5 relative group">
+                      <img
+                        src={slipUrl}
+                        alt="Slip Preview"
+                        className="w-full h-full object-cover"
+                      />
+                      <a
+                        href={slipUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-bold gap-1 transition-opacity"
+                      >
+                        <ExternalLink className="w-4 h-4" /> Open Full Image
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="p-2 bg-emerald-50 text-emerald-900 rounded text-xs font-bold flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+                      <span>Document Attached Successfully</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
 
             <div>
               <label className="block text-xs font-bold text-secondary mb-1">
@@ -375,23 +516,6 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
                 onChange={(e) => setNotes(e.target.value)}
                 className="w-full px-3 py-2 text-xs rounded-lg bg-surface-container-lowest border border-outline-variant/60 text-on-surface"
               ></textarea>
-            </div>
-
-            {/* Slip Upload Simulation */}
-            <div>
-              <label className="block text-xs font-bold text-secondary mb-1">
-                Original Order Slip Photo / Document
-              </label>
-              <div className="flex items-center gap-3">
-                <div className="flex-1 px-3 py-2 rounded-lg bg-surface-container-lowest border border-dashed border-outline-variant/80 flex items-center justify-between text-xs">
-                  <span className="text-secondary font-mono truncate">
-                    {slipUrl || 'No file selected'}
-                  </span>
-                  <span className="text-[10px] font-bold bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded">
-                    ATTACHED
-                  </span>
-                </div>
-              </div>
             </div>
           </div>
 

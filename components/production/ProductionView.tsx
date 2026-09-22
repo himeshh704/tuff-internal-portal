@@ -39,7 +39,20 @@ export const ProductionView: React.FC<ProductionViewProps> = ({
 
     try {
       db.assignWork(selectedOrderId, selectedItemId, selectedWorkerId, assignQty);
-      alert('Work assignment created successfully! Worker can now see it in My Work.');
+
+      // Sync to server database API
+      fetch('/api/orders/assign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: selectedOrderId,
+          itemId: selectedItemId,
+          workerId: selectedWorkerId,
+          requiredQty: assignQty,
+        }),
+      }).catch((err) => console.error('Assignment server sync error:', err));
+
+      alert('Work assignment created successfully! Worker can now see it immediately in My Work.');
       setSelectedOrderId('');
       setSelectedItemId('');
       setSelectedWorkerId('');

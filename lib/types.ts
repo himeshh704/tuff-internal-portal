@@ -81,6 +81,7 @@ export interface WorkAssignment {
   required_qty: number;
   completed_qty: number;
   status: AssignmentStatus;
+  slip_url?: string;
   assigned_at: string;
   completed_at?: string;
 }
