@@ -15,7 +15,7 @@ export async function GET() {
   }
 
   // Fetch only the logged in worker's assignments
-  const myWork = serverDb.getWorkerAssignments(session.userId);
+  const myWork = serverDb.getWorkerAssignments(session.userId, session.name);
 
   return NextResponse.json({
     worker: {

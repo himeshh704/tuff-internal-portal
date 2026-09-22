@@ -66,15 +66,46 @@ export default function Home() {
     checkAuth();
   }, [router]);
 
-  const refreshData = () => {
+  const refreshData = async () => {
+    // 1. Instantly render from local cache
     setOrders([...db.getOrders()]);
     setAssignments([...db.getAssignments()]);
     setLogs([...db.getLogs()]);
+
+    // 2. Fetch fresh real-time data from backend server API for cross-device synchronization
+    try {
+      if (currentUser?.role === 'worker') {
+        const res = await fetch('/api/worker/my-work');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.assignments) {
+            setAssignments(data.assignments);
+          }
+        }
+      } else {
+        const res = await fetch('/api/orders');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.orders) setOrders(data.orders);
+          if (data.assignments) setAssignments(data.assignments);
+          if (data.logs) setLogs(data.logs);
+        }
+      }
+    } catch (err) {
+      // Fallback to local store on network error
+    }
   };
 
   useEffect(() => {
     if (currentUser) {
       refreshData();
+
+      // REAL-TIME CROSS-DEVICE POLLING: Refresh state every 5 seconds across all devices
+      const interval = setInterval(() => {
+        refreshData();
+      }, 5000);
+
+      return () => clearInterval(interval);
     }
   }, [currentUser]);
 

@@ -130,10 +130,13 @@ export const serverDb = {
     return loadDatabase().workAssignments;
   },
 
-  getWorkerAssignments: (workerId: string): WorkAssignment[] => {
+  getWorkerAssignments: (workerId: string, workerName?: string): WorkAssignment[] => {
     const data = loadDatabase();
     return data.workAssignments.filter(
-      (a) => a.worker_id === workerId && a.status !== 'Approved'
+      (a) =>
+        (a.worker_id === workerId ||
+          (workerName && a.worker_name.toLowerCase().trim() === workerName.toLowerCase().trim())) &&
+        a.status !== 'Approved'
     );
   },
 

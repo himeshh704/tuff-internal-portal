@@ -20,7 +20,11 @@ export async function GET() {
   }
 
   const orders = serverDb.getOrders();
-  return NextResponse.json({ orders });
+  const assignments = serverDb.getAssignments();
+  const logs = serverDb.getLogs();
+  const customers = serverDb.getCustomers();
+
+  return NextResponse.json({ orders, assignments, logs, customers });
 }
 
 export async function POST(request: Request) {
