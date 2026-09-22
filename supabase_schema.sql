@@ -1,0 +1,142 @@
+-- ========================================================
+-- MA ASHAPURI TUFF — FACTORY PORTAL SUPABASE DATABASE SCHEMA
+-- Clean Production Setup (0 Orders, 0 Customers)
+-- Execute this script in your Supabase SQL Editor:
+-- https://app.supabase.com/project/_/sql/new
+-- ========================================================
+
+-- 1. EXTENSIONS
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- 2. USERS TABLE
+CREATE TABLE IF NOT EXISTS public.users (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  role TEXT NOT NULL CHECK (role IN ('owner', 'supervisor', 'worker')),
+  phone TEXT,
+  avatar_url TEXT,
+  line_assigned TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 3. CUSTOMERS TABLE
+CREATE TABLE IF NOT EXISTS public.customers (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  address TEXT,
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 4. ORDERS TABLE
+CREATE TABLE IF NOT EXISTS public.orders (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  order_number TEXT UNIQUE NOT NULL,
+  customer_id UUID REFERENCES public.customers(id) ON DELETE SET NULL,
+  customer_name TEXT NOT NULL,
+  customer_phone TEXT NOT NULL,
+  order_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  expected_delivery DATE,
+  priority TEXT DEFAULT 'Normal' CHECK (priority IN ('Low', 'Normal', 'High', 'Urgent')),
+  status TEXT DEFAULT 'New' CHECK (status IN ('New', 'In Production', 'Needs Checking', 'Rework', 'Ready', 'Completed')),
+  notes TEXT,
+  slip_url TEXT,
+  dispatched_at TIMESTAMPTZ,
+  dispatch_note TEXT,
+  dispatch_vehicle TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 5. ORDER ITEMS TABLE
+CREATE TABLE IF NOT EXISTS public.order_items (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  order_id UUID REFERENCES public.orders(id) ON DELETE CASCADE,
+  item_name TEXT NOT NULL,
+  dimensions TEXT NOT NULL,
+  thickness TEXT DEFAULT '5mm',
+  required_qty INT NOT NULL CHECK (required_qty > 0),
+  completed_qty INT DEFAULT 0 CHECK (completed_qty >= 0),
+  status TEXT DEFAULT 'New',
+  assigned_worker_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
+  assigned_worker_name TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 6. WORK ASSIGNMENTS TABLE
+CREATE TABLE IF NOT EXISTS public.work_assignments (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  order_id UUID REFERENCES public.orders(id) ON DELETE CASCADE,
+  order_number TEXT NOT NULL,
+  customer_name TEXT NOT NULL,
+  order_item_id UUID REFERENCES public.order_items(id) ON DELETE CASCADE,
+  item_name TEXT NOT NULL,
+  dimensions TEXT NOT NULL,
+  worker_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
+  worker_name TEXT NOT NULL,
+  required_qty INT NOT NULL,
+  completed_qty INT DEFAULT 0,
+  status TEXT DEFAULT 'Assigned' CHECK (status IN ('Assigned', 'In Progress', 'Needs Checking', 'Approved', 'Rework')),
+  assigned_at TIMESTAMPTZ DEFAULT NOW(),
+  completed_at TIMESTAMPTZ
+);
+
+-- 7. REWORK TASKS TABLE
+CREATE TABLE IF NOT EXISTS public.rework_tasks (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  assignment_id UUID REFERENCES public.work_assignments(id) ON DELETE CASCADE,
+  order_id UUID REFERENCES public.orders(id) ON DELETE CASCADE,
+  order_number TEXT NOT NULL,
+  order_item_id UUID REFERENCES public.order_items(id) ON DELETE CASCADE,
+  item_name TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  requested_by_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
+  requested_by_name TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  resolved BOOLEAN DEFAULT FALSE
+);
+
+-- 8. ACTIVITY LOGS TABLE
+CREATE TABLE IF NOT EXISTS public.activity_logs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  order_id UUID REFERENCES public.orders(id) ON DELETE SET NULL,
+  order_number TEXT,
+  user_name TEXT NOT NULL,
+  user_role TEXT NOT NULL,
+  action TEXT NOT NULL,
+  details TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 9. ROW LEVEL SECURITY (RLS) POLICIES
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.work_assignments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.rework_tasks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.activity_logs ENABLE ROW LEVEL SECURITY;
+
+-- Allow read/write policies
+CREATE POLICY "Public Users Policy" ON public.users FOR ALL USING (true);
+CREATE POLICY "Public Customers Policy" ON public.customers FOR ALL USING (true);
+CREATE POLICY "Public Orders Policy" ON public.orders FOR ALL USING (true);
+CREATE POLICY "Public Order Items Policy" ON public.order_items FOR ALL USING (true);
+CREATE POLICY "Public Assignments Policy" ON public.work_assignments FOR ALL USING (true);
+CREATE POLICY "Public Rework Policy" ON public.rework_tasks FOR ALL USING (true);
+CREATE POLICY "Public Activity Logs Policy" ON public.activity_logs FOR ALL USING (true);
+
+-- 10. INDEXES FOR FAST QUERYING
+CREATE INDEX IF NOT EXISTS idx_orders_status ON public.orders(status);
+CREATE INDEX IF NOT EXISTS idx_orders_customer ON public.orders(customer_id);
+CREATE INDEX IF NOT EXISTS idx_assignments_worker ON public.work_assignments(worker_id);
+
+-- 11. FACTORY SYSTEM ACCOUNTS ONLY (0 Sample Orders / 0 Sample Customers)
+INSERT INTO public.users (id, name, email, role, phone, line_assigned) VALUES
+  ('11111111-1111-4111-8111-111111111111', 'Rajesh Patel', 'owner@ashapurituff.com', 'owner', '+91 98250 00001', 'Factory Owner'),
+  ('22222222-2222-4222-8222-222222222222', 'Vikram Singh', 'supervisor@ashapurituff.com', 'supervisor', '+91 98250 00002', 'Shift A Supervisor'),
+  ('33333333-3333-4333-8333-333333333333', 'Rahul Sharma', 'rahul@ashapurituff.com', 'worker', '+91 98250 00003', 'Cutting Line 1'),
+  ('44444444-4444-4444-8444-444444444444', 'Suresh Kumar', 'suresh@ashapurituff.com', 'worker', '+91 98250 00004', 'Tempering Line')
+ON CONFLICT (email) DO NOTHING;
