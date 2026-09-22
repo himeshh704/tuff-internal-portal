@@ -26,6 +26,7 @@ export default function Home() {
 
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // Data States
   const [orders, setOrders] = useState<Order[]>([]);
@@ -79,14 +80,15 @@ export default function Home() {
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
+    setIsMobileSidebarOpen(false);
   };
 
   if (loadingSession || !currentUser) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[#070d18] text-white flex items-center justify-center p-4 font-sans">
         <div className="text-center space-y-3">
-          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-xs font-bold text-secondary">
+          <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-xs font-bold text-slate-400 font-mono">
             Verifying Factory Session Credentials...
           </p>
         </div>
@@ -115,26 +117,43 @@ export default function Home() {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onRefresh={refreshData}
+        onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
       />
 
       {/* Main Body */}
-      <div className="flex flex-1">
-        {/* Left Sidebar */}
-        <Sidebar
-          userRole={currentUser.role}
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          counts={{
-            ordersCount,
-            productionCount,
-            dispatchCount,
-            needsCheckingCount,
-            workerAssignedCount,
-          }}
-        />
+      <div className="flex flex-1 relative">
+        {/* Desktop & Mobile Responsive Sidebar Drawer */}
+        <div
+          className={`${
+            isMobileSidebarOpen
+              ? 'fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex'
+              : 'hidden md:flex'
+          }`}
+        >
+          <div className="w-64 min-h-full bg-surface-container-lowest z-50">
+            <Sidebar
+              userRole={currentUser.role}
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
+              counts={{
+                ordersCount,
+                productionCount,
+                dispatchCount,
+                needsCheckingCount,
+                workerAssignedCount,
+              }}
+            />
+          </div>
+          {isMobileSidebarOpen && (
+            <div
+              className="flex-1"
+              onClick={() => setIsMobileSidebarOpen(false)}
+            ></div>
+          )}
+        </div>
 
         {/* Main Workspace View */}
-        <main className="flex-1 p-4 md:p-6 overflow-y-auto max-w-7xl mx-auto">
+        <main className="flex-1 p-3 md:p-6 overflow-y-auto max-w-7xl mx-auto w-full">
           {activeTab === 'dashboard' && currentUser.role !== 'worker' && (
             <DashboardView
               orders={orders}
