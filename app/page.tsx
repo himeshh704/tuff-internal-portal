@@ -209,6 +209,7 @@ export default function Home() {
             <DashboardView
               orders={orders}
               logs={logs}
+              userRole={currentUser.role}
               onNavigateToTab={handleTabChange}
               onSelectOrder={(ord) => setSelectedOrder(ord)}
               onOpenNewOrder={() => setIsNewOrderOpen(true)}
@@ -220,6 +221,7 @@ export default function Home() {
               orders={orders}
               workers={workers}
               searchQuery={searchQuery}
+              userRole={currentUser.role}
               onSelectOrder={(ord) => setSelectedOrder(ord)}
               onOpenNewOrder={() => setIsNewOrderOpen(true)}
               onAssignWorkModal={(ord) => {

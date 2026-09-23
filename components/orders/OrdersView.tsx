@@ -20,6 +20,7 @@ interface OrdersViewProps {
   orders: Order[];
   workers: User[];
   searchQuery: string;
+  userRole?: string;
   onSelectOrder: (order: Order) => void;
   onOpenNewOrder: () => void;
   onAssignWorkModal: (order: Order) => void;
@@ -32,6 +33,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
   orders,
   workers,
   searchQuery,
+  userRole,
   onSelectOrder,
   onOpenNewOrder,
   onAssignWorkModal,
@@ -77,13 +79,15 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
             View, track, and manage all factory glass production orders.
           </p>
         </div>
-        <button
-          onClick={onOpenNewOrder}
-          className="px-4 py-2.5 bg-primary text-on-primary font-bold text-xs rounded-lg shadow hover:bg-amber-800 active:scale-95 transition-all flex items-center justify-center gap-2"
-        >
-          <PackagePlus className="w-4 h-4" />
-          <span>+ Create Order</span>
-        </button>
+        {userRole === 'owner' && (
+          <button
+            onClick={onOpenNewOrder}
+            className="px-4 py-2.5 bg-primary text-on-primary font-bold text-xs rounded-lg shadow hover:bg-amber-800 active:scale-95 transition-all flex items-center justify-center gap-2"
+          >
+            <PackagePlus className="w-4 h-4" />
+            <span>+ Create Order</span>
+          </button>
+        )}
       </div>
 
       {/* STATUS FILTER TABS */}
@@ -294,17 +298,19 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                             </button>
                           )}
 
-                          <button
-                            onClick={() => {
-                              if (confirm(`Delete Order ${ord.order_number} for ${ord.customer_name}?`)) {
-                                if (onDeleteOrder) onDeleteOrder(ord.id);
-                              }
-                            }}
-                            title="Delete Order"
-                            className="p-1.5 rounded bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 transition-colors"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          {userRole === 'owner' && (
+                            <button
+                              onClick={() => {
+                                if (confirm(`Delete Order ${ord.order_number} for ${ord.customer_name}?`)) {
+                                  if (onDeleteOrder) onDeleteOrder(ord.id);
+                                }
+                              }}
+                              title="Delete Order"
+                              className="p-1.5 rounded bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 transition-colors"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

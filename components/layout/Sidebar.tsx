@@ -154,35 +154,39 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 )}
               </button>
 
-              {/* Customers */}
-              <button
-                onClick={() => onTabChange('customers')}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-all ${
-                  activeTab === 'customers'
-                    ? 'bg-primary text-on-primary shadow-sm border-l-4 border-amber-300'
-                    : 'text-secondary hover:bg-surface-container hover:text-on-surface'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <Users className="w-4 h-4" />
-                  <span>Customers</span>
-                </div>
-              </button>
+              {/* Customers (Owner Only) */}
+              {userRole === 'owner' && (
+                <button
+                  onClick={() => onTabChange('customers')}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-all ${
+                    activeTab === 'customers'
+                      ? 'bg-primary text-on-primary shadow-sm border-l-4 border-amber-300'
+                      : 'text-secondary hover:bg-surface-container hover:text-on-surface'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Users className="w-4 h-4" />
+                    <span>Customers</span>
+                  </div>
+                </button>
+              )}
 
-              {/* Reports */}
-              <button
-                onClick={() => onTabChange('reports')}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-all ${
-                  activeTab === 'reports'
-                    ? 'bg-primary text-on-primary shadow-sm border-l-4 border-amber-300'
-                    : 'text-secondary hover:bg-surface-container hover:text-on-surface'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <FileBarChart className="w-4 h-4" />
-                  <span>Reports</span>
-                </div>
-              </button>
+              {/* Reports (Owner Only) */}
+              {userRole === 'owner' && (
+                <button
+                  onClick={() => onTabChange('reports')}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-all ${
+                    activeTab === 'reports'
+                      ? 'bg-primary text-on-primary shadow-sm border-l-4 border-amber-300'
+                      : 'text-secondary hover:bg-surface-container hover:text-on-surface'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <FileBarChart className="w-4 h-4" />
+                    <span>Reports</span>
+                  </div>
+                </button>
+              )}
             </>
           ) : (
             <>
@@ -224,8 +228,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </nav>
       </div>
 
-      {/* Secondary Settings Navigation */}
-      {!isWorker && (
+      {/* Secondary Settings Navigation (Owner Only) */}
+      {userRole === 'owner' && (
         <div className="pt-3 border-t border-outline-variant/30 space-y-1">
           <button
             onClick={() => onTabChange('settings')}

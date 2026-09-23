@@ -15,6 +15,7 @@ import {
 interface DashboardViewProps {
   orders: Order[];
   logs: ActivityLog[];
+  userRole?: string;
   onNavigateToTab: (tab: any) => void;
   onSelectOrder: (order: Order) => void;
   onOpenNewOrder: () => void;
@@ -23,6 +24,7 @@ interface DashboardViewProps {
 export const DashboardView: React.FC<DashboardViewProps> = ({
   orders,
   logs,
+  userRole,
   onNavigateToTab,
   onSelectOrder,
   onOpenNewOrder,
@@ -46,13 +48,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             Real-time status of active shop floor orders and production stages.
           </p>
         </div>
-        <button
-          onClick={onOpenNewOrder}
-          className="px-4 py-2.5 bg-primary text-on-primary font-bold text-xs rounded-lg shadow hover:bg-amber-800 active:scale-95 transition-all flex items-center justify-center gap-2"
-        >
-          <PackagePlus className="w-4 h-4" />
-          <span>+ Create New Order</span>
-        </button>
+        {userRole === 'owner' && (
+          <button
+            onClick={onOpenNewOrder}
+            className="px-4 py-2.5 bg-primary text-on-primary font-bold text-xs rounded-lg shadow hover:bg-amber-800 active:scale-95 transition-all flex items-center justify-center gap-2"
+          >
+            <PackagePlus className="w-4 h-4" />
+            <span>+ Create New Order</span>
+          </button>
+        )}
       </div>
 
       {/* 4 CORE KPI CARDS */}
