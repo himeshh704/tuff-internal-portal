@@ -12,12 +12,14 @@ import {
   Settings,
   HardHat,
   CheckCircle,
+  ShieldCheck,
 } from 'lucide-react';
 
 export type TabType =
   | 'dashboard'
   | 'orders'
   | 'production'
+  | 'verification'
   | 'dispatch'
   | 'customers'
   | 'reports'
@@ -122,17 +124,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 )}
               </button>
 
-              {/* Verification Badge inside status or contextual */}
-              {counts.needsCheckingCount > 0 && (
-                <div className="px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-300 flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-amber-900">
-                    Needs Checking
-                  </span>
-                  <span className="bg-amber-600 text-white font-extrabold px-1.5 py-0.5 rounded text-[10px] font-mono animate-pulse">
-                    {counts.needsCheckingCount}
-                  </span>
+              {/* Quality Verification */}
+              <button
+                onClick={() => onTabChange('verification')}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-all ${
+                  activeTab === 'verification'
+                    ? 'bg-purple-700 text-white shadow-sm border-l-4 border-purple-300'
+                    : 'text-secondary hover:bg-surface-container hover:text-on-surface'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <ShieldCheck className="w-4 h-4 text-purple-600" />
+                  <span>Verification</span>
                 </div>
-              )}
+                {counts.needsCheckingCount > 0 ? (
+                  <span className="bg-purple-100 text-purple-900 font-extrabold px-2 py-0.5 rounded-full text-[10px] animate-pulse">
+                    {counts.needsCheckingCount} verify
+                  </span>
+                ) : (
+                  <span className="text-[10px] opacity-70 font-mono">Queue</span>
+                )}
+              </button>
 
               {/* Dispatch */}
               <button

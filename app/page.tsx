@@ -272,6 +272,14 @@ export default function Home() {
             />
           )}
 
+          {activeTab === 'verification' && currentUser.role === 'owner' && (
+            <VerificationView
+              assignments={assignments}
+              currentUser={currentUser}
+              onRefresh={refreshData}
+            />
+          )}
+
           {activeTab === 'dispatch' && currentUser.role === 'owner' && (
             <DispatchView orders={orders} onRefresh={refreshData} />
           )}

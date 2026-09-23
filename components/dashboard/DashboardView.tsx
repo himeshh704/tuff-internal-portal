@@ -109,7 +109,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         {/* NEEDS CHECKING */}
         <div
-          onClick={() => onNavigateToTab('orders')}
+          onClick={() => onNavigateToTab('verification')}
           className="bg-surface-container-lowest p-4 rounded-xl border-2 border-purple-200 hover:border-purple-400 transition-all cursor-pointer shadow-sm group"
         >
           <div className="flex items-center justify-between">
