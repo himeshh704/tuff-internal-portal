@@ -68,8 +68,8 @@ export default function Home() {
 
   const refreshData = async () => {
     try {
-      // 1. Fetch main server orders & assignments
-      const res = await fetch('/api/orders');
+      // 1. Fetch main server orders & assignments via /api/sync
+      const res = await fetch('/api/sync');
       if (res.ok) {
         const data = await res.json();
         if (data.orders && Array.isArray(data.orders)) {
@@ -110,15 +110,17 @@ export default function Home() {
         JSON.stringify(prev) === JSON.stringify(allLogs) ? prev : allLogs
       );
 
-      // 3. Auto-heal: Sync local orders to server if server lambda restarted
-      if (allOrders.length > 0 && currentUser?.role === 'owner') {
-        allOrders.forEach((ord) => {
-          fetch('/api/orders', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(ord),
-          }).catch(() => {});
-        });
+      // 3. Bidirectional Sync Relay: Push local state to server so Phone <-> Desktop syncs across isolated lambdas
+      if (allOrders.length > 0 || allAssignments.length > 0) {
+        fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orders: allOrders,
+            assignments: allAssignments,
+            logs: allLogs,
+          }),
+        }).catch(() => {});
       }
     } catch (err) {
       const localOrders = db.getOrders();

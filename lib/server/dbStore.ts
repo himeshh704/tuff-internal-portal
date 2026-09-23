@@ -431,6 +431,47 @@ export const serverDb = {
     }
   },
 
+  mergeClientData: (incoming: { orders?: Order[]; assignments?: WorkAssignment[]; logs?: ActivityLog[] }) => {
+    const dbData = loadDatabase();
+    const statusRank: Record<string, number> = {
+      'New': 1, 'In Production': 2, 'Needs Checking': 3, 'Rework': 4, 'Ready': 5, 'Completed': 6
+    };
+
+    if (incoming.orders && Array.isArray(incoming.orders)) {
+      incoming.orders.forEach((so) => {
+        const idx = dbData.orders.findIndex((o) => o.id === so.id || o.order_number === so.order_number);
+        if (idx !== -1) {
+          const ex = dbData.orders[idx];
+          const exRank = statusRank[ex.status] || 0;
+          const soRank = statusRank[so.status] || 0;
+          const finalStatus = soRank >= exRank ? so.status : ex.status;
+          dbData.orders[idx] = { ...ex, ...so, status: finalStatus };
+        } else {
+          dbData.orders.unshift(so);
+        }
+      });
+    }
+
+    if (incoming.assignments && Array.isArray(incoming.assignments)) {
+      incoming.assignments.forEach((sa) => {
+        const idx = dbData.workAssignments.findIndex((a) => a.id === sa.id);
+        if (idx !== -1) {
+          const ex = dbData.workAssignments[idx];
+          const finalQty = Math.max(ex.completed_qty || 0, sa.completed_qty || 0);
+          const exRank = statusRank[ex.status] || 0;
+          const saRank = statusRank[sa.status] || 0;
+          const finalStatus = saRank >= exRank ? sa.status : ex.status;
+          dbData.workAssignments[idx] = { ...ex, ...sa, completed_qty: finalQty, status: finalStatus };
+        } else {
+          dbData.workAssignments.unshift(sa);
+        }
+      });
+    }
+
+    saveDatabase(dbData);
+    return dbData;
+  },
+
   getCustomers: (): Customer[] => {
     return loadDatabase().customers;
   },
