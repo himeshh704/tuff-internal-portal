@@ -92,18 +92,21 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-3">
-            <div className="flex items-center gap-3.5">
-              <div className="w-13 h-13 rounded-2xl bg-amber-600 text-white flex items-center justify-center font-black text-2xl shadow-lg shadow-amber-600/30">
-                <Factory className="w-7 h-7" />
-              </div>
-              <div>
-                <h1 className="text-3xl lg:text-4xl font-black tracking-tight text-slate-950 leading-none">
-                  MA Ashapuri Tuff
-                </h1>
-                <p className="text-xs font-mono font-extrabold text-amber-700 tracking-wider uppercase mt-1">
-                  Factory Order & Production Portal
-                </p>
-              </div>
+            <div className="bg-white p-3 rounded-2xl border-2 border-slate-200 shadow-md inline-block max-w-sm">
+              <img
+                src="/logo.jpg"
+                alt="Ashapuri Tuff — Strengthening Your Glass"
+                className="w-full h-auto object-contain rounded-xl"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <h1 className="text-3xl lg:text-4xl font-black tracking-tight text-slate-950 leading-none">
+                Ashapuri Tuff
+              </h1>
+              <p className="text-xs font-mono font-black text-amber-700 tracking-wider uppercase">
+                Strengthening Your Glass • Factory Portal
+              </p>
             </div>
 
             <p className="text-slate-600 text-xs md:text-sm leading-relaxed pt-2 font-medium">
@@ -199,88 +202,144 @@ export default function LoginPage() {
                   Select Role to Sign In:
                 </span>
 
-                {/* OWNER QUICK LOGIN */}
+                {/* OWNER 1: VIKASH */}
                 <button
                   type="button"
                   disabled={loading}
-                  onClick={() => handleQuickLogin('owner@ashapurituff.com', 'admin123')}
-                  className="w-full p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 hover:border-amber-500 hover:bg-amber-100/80 transition-all text-left flex items-center justify-between group active:scale-98 shadow-sm"
+                  onClick={() => handleQuickLogin('vikash@ashapurituff.com', 'admin123')}
+                  className="w-full p-3.5 rounded-2xl bg-amber-50 border-2 border-amber-300 hover:border-amber-500 hover:bg-amber-100/80 transition-all text-left flex items-center justify-between group active:scale-98 shadow-sm"
                 >
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center font-bold">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-amber-600 text-white flex items-center justify-center font-bold">
                       <ShieldCheck className="w-5 h-5" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
                         <h3 className="font-black text-sm text-amber-950">
-                          Rajesh Patel (Owner)
+                          Vikash (Owner)
                         </h3>
                         <span className="text-[10px] font-mono font-black bg-amber-200 text-amber-900 px-2 py-0.5 rounded">
-                          FULL ADMIN
+                          ADMIN
                         </span>
                       </div>
-                      <p className="text-xs text-amber-800 font-medium">
-                        All Orders, Production, Customers, Reports & User Management
+                      <p className="text-[11px] text-amber-800 font-medium">
+                        Full Orders, Production, Customers, Reports & Management
                       </p>
                     </div>
                   </div>
-                  <ArrowRight className="w-5 h-5 text-amber-700 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-4 h-4 text-amber-700 group-hover:translate-x-1 transition-transform" />
                 </button>
 
-                {/* SUPERVISOR QUICK LOGIN */}
+                {/* OWNER 2: NAVEEN */}
                 <button
                   type="button"
                   disabled={loading}
-                  onClick={() => handleQuickLogin('supervisor@ashapurituff.com', 'super123')}
-                  className="w-full p-4 rounded-2xl bg-blue-50 border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-100/80 transition-all text-left flex items-center justify-between group active:scale-98 shadow-sm"
+                  onClick={() => handleQuickLogin('naveen@ashapurituff.com', 'admin123')}
+                  className="w-full p-3.5 rounded-2xl bg-amber-50 border-2 border-amber-300 hover:border-amber-500 hover:bg-amber-100/80 transition-all text-left flex items-center justify-between group active:scale-98 shadow-sm"
                 >
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-blue-700 text-white flex items-center justify-center font-bold">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-amber-600 text-white flex items-center justify-center font-bold">
+                      <ShieldCheck className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-black text-sm text-amber-950">
+                          Naveen (Owner)
+                        </h3>
+                        <span className="text-[10px] font-mono font-black bg-amber-200 text-amber-900 px-2 py-0.5 rounded">
+                          ADMIN
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-amber-800 font-medium">
+                        Full Orders, Production, Customers, Reports & Management
+                      </p>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-amber-700 group-hover:translate-x-1 transition-transform" />
+                </button>
+
+                {/* SUPERVISOR 1 */}
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => handleQuickLogin('supervisor1@ashapurituff.com', 'super123')}
+                  className="w-full p-3.5 rounded-2xl bg-blue-50 border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-100/80 transition-all text-left flex items-center justify-between group active:scale-98 shadow-sm"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-blue-700 text-white flex items-center justify-center font-bold">
                       <UserCheck className="w-5 h-5" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
                         <h3 className="font-black text-sm text-blue-950">
-                          Vikram Singh (Supervisor)
+                          Supervisor 1
                         </h3>
                         <span className="text-[10px] font-mono font-black bg-blue-200 text-blue-900 px-2 py-0.5 rounded">
                           SHIFT A
                         </span>
                       </div>
-                      <p className="text-xs text-blue-800 font-medium">
-                        Assign Floor Workers, Approve Work & Dispatch
+                      <p className="text-[11px] text-blue-800 font-medium">
+                        Send Shop Floor Progress Feedback & Manage Production
                       </p>
                     </div>
                   </div>
-                  <ArrowRight className="w-5 h-5 text-blue-700 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-4 h-4 text-blue-700 group-hover:translate-x-1 transition-transform" />
                 </button>
 
-                {/* WORKER QUICK LOGIN */}
+                {/* SUPERVISOR 2 */}
                 <button
                   type="button"
                   disabled={loading}
-                  onClick={() => handleQuickLogin('rahul@ashapurituff.com', 'worker123')}
-                  className="w-full p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-200 hover:border-emerald-400 hover:bg-emerald-100/80 transition-all text-left flex items-center justify-between group active:scale-98 shadow-sm"
+                  onClick={() => handleQuickLogin('supervisor2@ashapurituff.com', 'super123')}
+                  className="w-full p-3.5 rounded-2xl bg-blue-50 border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-100/80 transition-all text-left flex items-center justify-between group active:scale-98 shadow-sm"
                 >
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-700 text-white flex items-center justify-center font-bold">
-                      <HardHat className="w-5 h-5" />
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-blue-700 text-white flex items-center justify-center font-bold">
+                      <UserCheck className="w-5 h-5" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="font-black text-sm text-emerald-950">
-                          Rahul Sharma (Floor Worker)
+                        <h3 className="font-black text-sm text-blue-950">
+                          Supervisor 2
                         </h3>
-                        <span className="text-[10px] font-mono font-black bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded">
-                          CUTTING LINE
+                        <span className="text-[10px] font-mono font-black bg-blue-200 text-blue-900 px-2 py-0.5 rounded">
+                          SHIFT B
                         </span>
                       </div>
-                      <p className="text-xs text-emerald-800 font-medium">
-                        Locked to My Work Touch Interface
+                      <p className="text-[11px] text-blue-800 font-medium">
+                        Send Shop Floor Progress Feedback & Manage Production
                       </p>
                     </div>
                   </div>
-                  <ArrowRight className="w-5 h-5 text-emerald-700 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-4 h-4 text-blue-700 group-hover:translate-x-1 transition-transform" />
+                </button>
+
+                {/* SUPERVISOR 3 */}
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => handleQuickLogin('supervisor3@ashapurituff.com', 'super123')}
+                  className="w-full p-3.5 rounded-2xl bg-blue-50 border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-100/80 transition-all text-left flex items-center justify-between group active:scale-98 shadow-sm"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-blue-700 text-white flex items-center justify-center font-bold">
+                      <UserCheck className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-black text-sm text-blue-950">
+                          Supervisor 3
+                        </h3>
+                        <span className="text-[10px] font-mono font-black bg-blue-200 text-blue-900 px-2 py-0.5 rounded">
+                          SHIFT C
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-blue-800 font-medium">
+                        Send Shop Floor Progress Feedback & Manage Production
+                      </p>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-blue-700 group-hover:translate-x-1 transition-transform" />
                 </button>
               </div>
             )}
@@ -341,7 +400,7 @@ export default function LoginPage() {
 
             {/* Footer Credentials Reminder */}
             <div className="pt-2 border-t border-slate-200 text-center text-[11px] font-mono text-slate-500">
-              Default Owner: <strong className="text-slate-800">owner@ashapurituff.com</strong> / Password: <strong className="text-slate-800">admin123</strong>
+              Owners: <strong className="text-slate-800">vikash@ashapurituff.com / naveen@ashapurituff.com</strong> (Pass: <strong className="text-slate-800">admin123</strong>) | Supervisors: <strong className="text-slate-800">supervisor1 / supervisor2 / supervisor3</strong> (Pass: <strong className="text-slate-800">super123</strong>)
             </div>
           </div>
         </div>

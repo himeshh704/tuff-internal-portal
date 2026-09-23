@@ -15,16 +15,21 @@ The system is designed to be **extremely simple** to use, replacing paper slips 
 
 | Who Are You? | Email Account | Password | What You Can Do |
 | :--- | :--- | :--- | :--- |
-| **Factory Owner (Admin)** | `owner@ashapurituff.com` | `admin123` | Full control: Create orders, manage customers, check quality, approve dispatch, view monthly reports, and add new workers. |
-| **Shift Supervisor** | `supervisor@ashapurituff.com` | `super123` | Manage daily production: Assign glass items to floor workers, monitor line progress, and inspect completed work. |
-| **Floor Line Worker** | `rahul@ashapurituff.com` | `worker123` | Simple mobile screen: See assigned glass jobs, tap **+ Update Quantity** when finished with pieces, and tap **Mark Work Complete**. |
+| **Factory Owner (Vikash)** | `vikash@ashapurituff.com` | `admin123` | Full Admin Control: Create/edit orders, manage customers, inspect quality, approve dispatch, view monthly reports, and manage factory settings. |
+| **Factory Owner (Naveen)** | `naveen@ashapurituff.com` | `admin123` | Full Admin Control: Create/edit orders, manage customers, inspect quality, approve dispatch, view monthly reports, and manage factory settings. |
+| **Supervisor 1 (Shift A)** | `supervisor1@ashapurituff.com` | `super123` | Manage daily production: Assign line tasks, send shop floor progress feedback & piece counts, inspect quality, and process dispatches. |
+| **Supervisor 2 (Shift B)** | `supervisor2@ashapurituff.com` | `super123` | Manage daily production: Assign line tasks, send shop floor progress feedback & piece counts, inspect quality, and process dispatches. |
+| **Supervisor 3 (Shift C)** | `supervisor3@ashapurituff.com` | `super123` | Manage daily production: Assign line tasks, send shop floor progress feedback & piece counts, inspect quality, and process dispatches. |
+
+> [!NOTE]
+> **Floor Workers do NOT log into the portal directly.** The 3 Shift Supervisors log into the system and submit production updates and shop-floor feedback on behalf of the workers.
 
 ---
 
 ## 2. Daily Operational Guide (Step-by-Step)
 
 ### Step 1: Owner Creates a New Order
-1. Log in as **Owner** (`owner@ashapurituff.com`).
+1. Log in as **Vikash** or **Naveen** (`vikash@ashapurituff.com` / `naveen@ashapurituff.com`).
 2. Go to **Orders** → Click **+ Create Order**.
 3. Select or type Customer Name, Phone Number, Expected Delivery Date, and Priority.
 4. Add your Glass Items (e.g. *5mm Clear Toughened Glass*, *914 × 1828 mm*, *20 pcs*).
@@ -33,24 +38,20 @@ The system is designed to be **extremely simple** to use, replacing paper slips 
 
 ---
 
-### Step 2: Assigning Glass Items to Floor Workers
+### Step 2: Assigning Glass Items to Production Lines
 1. Go to **Production** on the left menu.
-2. Select the Active Order, the Glass Item, and choose your Floor Worker (e.g. **Rahul Sharma**).
+2. Select the Active Order, the Glass Item, and choose the Production Line / Worker.
 3. Click **Assign Work Now**.
-   - *Rahul immediately sees this job on his mobile phone screen under **My Work**.*
 
 ---
 
-### Step 3: Worker Updates Progress on Shop Floor
-1. Worker logs in on mobile or tablet (`rahul@ashapurituff.com`).
-2. Worker opens **My Work** and sees a card with big numbers:
-   - **REQUIRED: 20 pcs**
-   - **DONE: 0 pcs**
-   - **REMAIN: 20 pcs**
-3. When Rahul completes 12 pieces, he taps **+ Update Quantity**, enters `12`, and taps **Save Progress**.
-   - *His card automatically updates: **DONE: 12**, **REMAIN: 8**, **60% Progress**.*
-4. When all 20 pieces are done, he taps **Mark Work Complete**.
-   - *The job moves to **Needs Checking** for the owner's review.*
+### Step 3: Supervisors Submit Shop Floor Feedback & Progress
+1. Shift Supervisor logs into the portal (`supervisor1@ashapurituff.com`, `supervisor2@ashapurituff.com`, or `supervisor3@ashapurituff.com`).
+2. Go to **Production** → Locate the active assignment line card.
+3. Click **⚡ Send Floor Progress Feedback**.
+4. Select or enter finished piece count (e.g., `+5` or `+10` pcs), type supervisor floor notes (e.g., *"Cutting completed 10 pcs, edge quality verified"*), and click **Submit Progress**.
+5. When all pieces are finished, click **Mark Item Entirely Complete**.
+   - *The job moves to **Needs Checking** for quality verification.*
 
 ---
 

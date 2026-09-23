@@ -14,47 +14,61 @@ const STORAGE_KEY = 'ma_ashapuri_tuff_factory_data_v1';
 export const DEFAULT_USERS: User[] = [
   {
     id: 'user-1',
-    name: 'Rajesh Patel',
+    name: 'Vikash',
     role: 'owner',
     phone: '+91 98250 00001',
     avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
   },
   {
     id: 'user-2',
-    name: 'Vikram Singh',
-    role: 'supervisor',
+    name: 'Naveen',
+    role: 'owner',
     phone: '+91 98250 00002',
-    line_assigned: 'Shift A • Production Floor',
+    avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
   },
   {
     id: 'user-3',
-    name: 'Rahul Sharma',
-    role: 'worker',
+    name: 'Supervisor 1',
+    role: 'supervisor',
     phone: '+91 98250 00003',
-    line_assigned: 'Cutting Line 1',
+    line_assigned: 'Shift A • Production Floor',
   },
   {
     id: 'user-4',
-    name: 'Suresh Kumar',
-    role: 'worker',
+    name: 'Supervisor 2',
+    role: 'supervisor',
     phone: '+91 98250 00004',
-    line_assigned: 'Tempering Line',
+    line_assigned: 'Shift B • Cutting & Tempering',
   },
   {
     id: 'user-5',
-    name: 'Amit Verma',
-    role: 'worker',
+    name: 'Supervisor 3',
+    role: 'supervisor',
     phone: '+91 98250 00005',
-    line_assigned: 'Polishing & Edging',
+    line_assigned: 'Shift C • Polishing & Edging',
+  },
+  {
+    id: 'user-6',
+    name: 'Rahul Sharma',
+    role: 'worker',
+    phone: '+91 98250 00006',
+    line_assigned: 'Cutting Line 1',
+  },
+  {
+    id: 'user-7',
+    name: 'Suresh Kumar',
+    role: 'worker',
+    phone: '+91 98250 00007',
+    line_assigned: 'Tempering Line',
   },
 ];
 
 export const DEFAULT_SETTINGS: FactorySettings = {
-  factory_name: 'MA Ashapuri Tuff — Factory Portal',
+  factory_name: 'Ashapuri Tuff — Factory Portal',
   phone: '+91 98250 99999',
   address: 'Plot 108, Industrial Zone 3, Morbi-Rajkot Highway, Gujarat',
   current_shift: 'SHIFT A (08:00 - 16:00)',
-  auto_order_prefix: 'MAT-2026-',
+  auto_order_prefix: 'AT-2026-',
 };
 
 const CLEAN_DATA = {
@@ -353,9 +367,9 @@ class FactoryStore {
       order_id: assignment.order_id,
       order_number: assignment.order_number,
       user_name: workerName,
-      user_role: 'worker',
-      action: 'Quantity Updated',
-      details: `Added ${addedQty} pcs. Completed ${newCompleted} / ${assignment.required_qty} pcs`,
+      user_role: 'supervisor',
+      action: 'Floor Feedback & Progress',
+      details: `Added ${addedQty} pcs for ${assignment.worker_name}. Total: ${newCompleted} / ${assignment.required_qty} pcs.${notes ? ` Note: ${notes}` : ''}`,
     });
 
     this.save();

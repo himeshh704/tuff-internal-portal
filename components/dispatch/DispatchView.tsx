@@ -1,9 +1,8 @@
-'use client';
-
 import React, { useState } from 'react';
 import { Order } from '@/lib/types';
 import { db } from '@/lib/db';
-import { Truck, CheckCircle2, X, PackageCheck } from 'lucide-react';
+import { Truck, CheckCircle2, X, PackageCheck, MessageSquare, ExternalLink } from 'lucide-react';
+import { getOrderDispatchedWhatsAppUrl, openWhatsApp } from '@/lib/whatsapp';
 
 interface DispatchViewProps {
   orders: Order[];
@@ -25,13 +24,21 @@ export const DispatchView: React.FC<DispatchViewProps> = ({
     setDispatchModalOrder(ord);
   };
 
-  const handleConfirmDispatch = (e: React.FormEvent) => {
+  const handleConfirmDispatch = (e: React.FormEvent, sendWhatsApp: boolean = false) => {
     e.preventDefault();
     if (!dispatchModalOrder) return;
 
     try {
       db.dispatchOrder(dispatchModalOrder.id, vehicle, note);
-      alert(`Order ${dispatchModalOrder.order_number} marked as Dispatched & Completed!`);
+      const updatedOrder = db.getOrderById(dispatchModalOrder.id) || dispatchModalOrder;
+
+      if (sendWhatsApp) {
+        const waUrl = getOrderDispatchedWhatsAppUrl(updatedOrder, vehicle, note);
+        openWhatsApp(waUrl);
+      } else {
+        alert(`Order ${dispatchModalOrder.order_number} marked as Dispatched & Completed!`);
+      }
+
       setDispatchModalOrder(null);
       onRefresh();
     } catch (err: any) {
@@ -48,12 +55,17 @@ export const DispatchView: React.FC<DispatchViewProps> = ({
             Dispatch Staging & Logistics
           </h2>
           <p className="text-xs text-secondary mt-0.5">
-            Manage finished orders ready for truck loading and site delivery.
+            Manage finished orders, generate WhatsApp dispatch notifications, and track truck deliveries.
           </p>
         </div>
-        <span className="text-xs font-mono font-extrabold bg-emerald-100 text-emerald-900 border border-emerald-300 px-3 py-1 rounded-full">
-          {readyOrders.length} Ready for Dispatch
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-mono font-extrabold bg-emerald-100 text-emerald-900 border border-emerald-300 px-3 py-1 rounded-full">
+            {readyOrders.length} Ready for Dispatch
+          </span>
+          <span className="text-xs font-mono font-extrabold bg-blue-100 text-blue-900 border border-blue-300 px-3 py-1 rounded-full">
+            {dispatchedOrders.length} Dispatched
+          </span>
+        </div>
       </div>
 
       {/* READY FOR DISPATCH QUEUE */}
@@ -100,29 +112,90 @@ export const DispatchView: React.FC<DispatchViewProps> = ({
                         • {i.item_name} ({i.dimensions}) — <strong>{i.required_qty} pcs</strong>
                       </div>
                     ))}
-                    <div className="text-xs text-secondary font-mono pt-1">
-                      Total Units: <strong>{totalQty} pcs</strong> • Customer Phone:{' '}
-                      <strong>{ord.customer_phone}</strong>
+                    <div className="text-xs text-secondary font-mono pt-1 flex items-center justify-between">
+                      <span>Total Units: <strong>{totalQty} pcs</strong> • Customer Phone: <strong>{ord.customer_phone}</strong></span>
                     </div>
                   </div>
                 </div>
 
-                <button
-                  onClick={() => handleOpenDispatch(ord)}
-                  className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl text-sm shadow-md flex items-center gap-2 active:scale-95 transition-all shrink-0"
-                >
-                  <Truck className="w-5 h-5" />
-                  <span>Mark as Dispatched</span>
-                </button>
+                <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+                  <button
+                    onClick={() => {
+                      const waUrl = getOrderDispatchedWhatsAppUrl(ord, vehicle, note);
+                      openWhatsApp(waUrl);
+                    }}
+                    className="px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border-2 border-emerald-400 font-extrabold rounded-xl text-xs flex items-center gap-1.5 active:scale-95 transition-all"
+                  >
+                    <MessageSquare className="w-4 h-4 text-emerald-700" />
+                    <span>WhatsApp Preview</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleOpenDispatch(ord)}
+                    className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl text-xs shadow-md flex items-center gap-2 active:scale-95 transition-all"
+                  >
+                    <Truck className="w-4.5 h-4.5" />
+                    <span>Mark as Dispatched</span>
+                  </button>
+                </div>
               </div>
             );
           })
         )}
       </div>
 
-      {/* DISPATCH CONFIRMATION MODAL */}
+      {/* DISPATCHED ORDERS HISTORY */}
+      {dispatchedOrders.length > 0 && (
+        <div className="space-y-4 pt-4 border-t border-outline-variant/40">
+          <h3 className="text-xs font-extrabold text-on-surface uppercase tracking-wider">
+            Completed / Dispatched Orders
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {dispatchedOrders.map((ord) => (
+              <div
+                key={ord.id}
+                className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/40 shadow-sm space-y-2"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-bold text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-800">
+                      {ord.order_number}
+                    </span>
+                    <h4 className="font-extrabold text-xs text-on-surface">
+                      {ord.customer_name}
+                    </h4>
+                  </div>
+                  <span className="text-[10px] font-bold bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded-full">
+                    Dispatched
+                  </span>
+                </div>
+
+                <p className="text-xs text-secondary font-mono">
+                  Vehicle: <strong>{ord.dispatch_vehicle || 'GJ-01-AT-4820'}</strong> • Customer: <strong>{ord.customer_phone}</strong>
+                </p>
+
+                <div className="pt-2 flex justify-end">
+                  <button
+                    onClick={() => {
+                      const waUrl = getOrderDispatchedWhatsAppUrl(ord);
+                      openWhatsApp(waUrl);
+                    }}
+                    className="px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-950 font-bold text-xs rounded-lg border border-emerald-300 flex items-center gap-1.5 transition-all"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5 text-emerald-700" />
+                    <span>Send WhatsApp Dispatch Slip</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* DISPATCH CONFIRMATION MODAL WITH WHATSAPP ACTION */}
       {dispatchModalOrder && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
             <div className="bg-emerald-50 px-4 py-3 border-b border-emerald-200 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -139,9 +212,9 @@ export const DispatchView: React.FC<DispatchViewProps> = ({
               </button>
             </div>
 
-            <form onSubmit={handleConfirmDispatch} className="p-5 space-y-4 text-xs">
+            <form className="p-5 space-y-4 text-xs">
               <div className="bg-emerald-50 p-3 rounded-xl border border-emerald-200 text-emerald-950 font-medium">
-                Customer: <strong>{dispatchModalOrder.customer_name}</strong>
+                Customer: <strong>{dispatchModalOrder.customer_name}</strong> ({dispatchModalOrder.customer_phone})
               </div>
 
               <div>
@@ -170,20 +243,32 @@ export const DispatchView: React.FC<DispatchViewProps> = ({
                 ></textarea>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="space-y-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setDispatchModalOrder(null)}
-                  className="px-4 py-2 font-bold rounded-lg border border-outline-variant/60 text-secondary"
+                  onClick={(e) => handleConfirmDispatch(e as any, true)}
+                  className="w-full py-2.5 font-extrabold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all"
                 >
-                  Cancel
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Confirm & Send WhatsApp Dispatch Advice</span>
                 </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 font-extrabold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-md"
-                >
-                  Confirm Dispatch
-                </button>
+
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setDispatchModalOrder(null)}
+                    className="px-4 py-2 font-bold rounded-lg border border-outline-variant/60 text-secondary"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => handleConfirmDispatch(e as any, false)}
+                    className="px-4 py-2 font-bold rounded-lg bg-slate-800 hover:bg-slate-900 text-white"
+                  >
+                    Confirm Dispatch (System Only)
+                  </button>
+                </div>
               </div>
             </form>
           </div>

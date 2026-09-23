@@ -30,6 +30,11 @@ export const ProductionView: React.FC<ProductionViewProps> = ({
   const selectedOrder = orders.find((o) => o.id === selectedOrderId);
   const selectedItem = selectedOrder?.items.find((i) => i.id === selectedItemId);
 
+  const [feedbackAssignment, setFeedbackAssignment] = useState<WorkAssignment | null>(null);
+  const [addedQty, setAddedQty] = useState<number>(1);
+  const [feedbackNote, setFeedbackNote] = useState<string>('');
+  const [submittingFeedback, setSubmittingFeedback] = useState<boolean>(false);
+
   const handleCreateAssignment = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedOrderId || !selectedItemId || !selectedWorkerId) {
@@ -52,7 +57,7 @@ export const ProductionView: React.FC<ProductionViewProps> = ({
         }),
       }).catch((err) => console.error('Assignment server sync error:', err));
 
-      alert('Work assignment created successfully! Worker can now see it immediately in My Work.');
+      alert('Work assignment created successfully!');
       setSelectedOrderId('');
       setSelectedItemId('');
       setSelectedWorkerId('');
@@ -62,16 +67,60 @@ export const ProductionView: React.FC<ProductionViewProps> = ({
     }
   };
 
+  const handleSupervisorSubmitFeedback = async (isMarkComplete: boolean = false) => {
+    if (!feedbackAssignment) return;
+    setSubmittingFeedback(true);
+
+    try {
+      if (isMarkComplete) {
+        db.markWorkComplete(feedbackAssignment.id, 'Supervisor');
+      } else {
+        db.updateWorkerProgress(
+          feedbackAssignment.id,
+          addedQty,
+          'Supervisor',
+          feedbackNote
+        );
+      }
+
+      // Sync with backend API
+      await fetch('/api/worker/my-work', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: isMarkComplete ? 'mark_complete' : 'update_qty',
+          assignmentId: feedbackAssignment.id,
+          addedQty: isMarkComplete ? 0 : addedQty,
+          notes: feedbackNote,
+        }),
+      });
+
+      alert(
+        isMarkComplete
+          ? 'Work marked as Complete & sent for Quality Checking!'
+          : `Added ${addedQty} pcs floor feedback for ${feedbackAssignment.worker_name}!`
+      );
+      setFeedbackAssignment(null);
+      setAddedQty(1);
+      setFeedbackNote('');
+      onRefresh();
+    } catch (err: any) {
+      alert(err.message || 'Failed to submit floor feedback.');
+    } finally {
+      setSubmittingFeedback(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/40 shadow-sm">
         <div>
           <h2 className="text-xl font-extrabold text-on-surface tracking-tight">
-            Production & Work Assignment
+            Production & Floor Feedback Management
           </h2>
           <p className="text-xs text-secondary mt-0.5">
-            Assign order glass items to floor workers and monitor line progress.
+            Supervisors assign order glass items and log shop-floor progress feedback for line workers.
           </p>
         </div>
       </div>
@@ -82,7 +131,7 @@ export const ProductionView: React.FC<ProductionViewProps> = ({
           <div className="border-b border-outline-variant/30 pb-3 flex items-center gap-2">
             <UserCheck className="w-5 h-5 text-primary" />
             <h3 className="text-sm font-extrabold text-on-surface">
-              Assign Work to Worker
+              Assign Line Task
             </h3>
           </div>
 
@@ -137,7 +186,7 @@ export const ProductionView: React.FC<ProductionViewProps> = ({
             {/* SELECT WORKER */}
             <div>
               <label className="block font-bold text-secondary mb-1">
-                Select Floor Worker *
+                Select Production Line / Worker *
               </label>
               <select
                 value={selectedWorkerId}
@@ -180,15 +229,15 @@ export const ProductionView: React.FC<ProductionViewProps> = ({
           </form>
         </div>
 
-        {/* ACTIVE WORK ASSIGNMENTS LIST */}
+        {/* ACTIVE WORK ASSIGNMENTS LIST WITH SUPERVISOR FEEDBACK ACTIONS */}
         <div className="lg:col-span-2 bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/40 shadow-sm space-y-4">
           <div className="border-b border-outline-variant/30 pb-3 flex items-center justify-between">
             <div>
               <h3 className="text-sm font-extrabold text-on-surface">
-                Live Production Assignments
+                Shop Floor Production Lines & Assignments
               </h3>
               <p className="text-xs text-secondary">
-                Real-time tracking of active floor assignments.
+                Click "Submit Feedback" to update finished piece counts for any line.
               </p>
             </div>
             <span className="text-xs font-mono font-bold bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full">
@@ -199,7 +248,7 @@ export const ProductionView: React.FC<ProductionViewProps> = ({
           <div className="space-y-3 max-h-[480px] overflow-y-auto pr-1">
             {assignments.length === 0 ? (
               <p className="text-xs text-secondary py-8 text-center">
-                No active work assignments yet. Use the form to assign work to floor workers.
+                No active work assignments yet.
               </p>
             ) : (
               assignments.map((asgn) => {
@@ -207,11 +256,12 @@ export const ProductionView: React.FC<ProductionViewProps> = ({
                   asgn.required_qty > 0
                     ? Math.round((asgn.completed_qty / asgn.required_qty) * 100)
                     : 0;
+                const remain = asgn.required_qty - asgn.completed_qty;
 
                 return (
                   <div
                     key={asgn.id}
-                    className="p-3.5 rounded-xl border border-outline-variant/40 bg-surface-container-low/40 space-y-2"
+                    className="p-4 rounded-xl border border-outline-variant/40 bg-surface-container-low/40 space-y-3"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -244,7 +294,7 @@ export const ProductionView: React.FC<ProductionViewProps> = ({
                           {asgn.item_name} ({asgn.dimensions})
                         </span>
                         <span className="text-secondary text-[11px] block mt-0.5">
-                          Worker: <strong className="text-primary">{asgn.worker_name}</strong>
+                          Line Worker: <strong className="text-primary">{asgn.worker_name}</strong>
                         </span>
                       </div>
 
@@ -253,7 +303,7 @@ export const ProductionView: React.FC<ProductionViewProps> = ({
                           {asgn.completed_qty} / {asgn.required_qty} pcs
                         </span>
                         <span className="text-[10px] text-secondary font-mono">
-                          Remaining: {asgn.required_qty - asgn.completed_qty} pcs
+                          Remaining: {remain} pcs
                         </span>
                       </div>
                     </div>
@@ -265,6 +315,23 @@ export const ProductionView: React.FC<ProductionViewProps> = ({
                         style={{ width: `${pct}%` }}
                       ></div>
                     </div>
+
+                    {/* SUPERVISOR ACTION BUTTON */}
+                    {asgn.status !== 'Approved' && (
+                      <div className="pt-1 flex items-center justify-end">
+                        <button
+                          onClick={() => {
+                            setFeedbackAssignment(asgn);
+                            setAddedQty(1);
+                            setFeedbackNote('');
+                          }}
+                          className="px-3 py-1.5 bg-blue-700 hover:bg-blue-800 text-white font-extrabold text-xs rounded-lg shadow-sm transition-all flex items-center gap-1.5 active:scale-95"
+                        >
+                          <Factory className="w-3.5 h-3.5" />
+                          <span>⚡ Send Floor Progress Feedback</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               })
@@ -272,6 +339,118 @@ export const ProductionView: React.FC<ProductionViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* SUPERVISOR FLOOR FEEDBACK MODAL */}
+      {feedbackAssignment && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 text-slate-900 relative border-2 border-blue-500">
+            <div className="flex items-center justify-between border-b pb-3">
+              <div>
+                <span className="text-[10px] font-mono font-bold bg-blue-100 text-blue-900 px-2 py-0.5 rounded">
+                  SUPERVISOR FLOOR FEEDBACK
+                </span>
+                <h3 className="font-black text-base mt-1 text-slate-950">
+                  {feedbackAssignment.item_name}
+                </h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  {feedbackAssignment.order_number} • Worker: <strong>{feedbackAssignment.worker_name}</strong>
+                </p>
+              </div>
+              <button
+                onClick={() => setFeedbackAssignment(null)}
+                className="text-slate-400 hover:text-slate-700 font-bold text-lg"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Current Counters */}
+            <div className="grid grid-cols-3 gap-2 bg-slate-100 p-3 rounded-xl text-center font-mono">
+              <div>
+                <span className="text-[10px] text-slate-500 font-bold block">REQUIRED</span>
+                <span className="text-base font-black text-slate-900">{feedbackAssignment.required_qty}</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-500 font-bold block">COMPLETED</span>
+                <span className="text-base font-black text-blue-700">{feedbackAssignment.completed_qty}</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-500 font-bold block">REMAINING</span>
+                <span className="text-base font-black text-amber-600">
+                  {feedbackAssignment.required_qty - feedbackAssignment.completed_qty}
+                </span>
+              </div>
+            </div>
+
+            {/* Quick Add Buttons */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Add Finished Pieces (Today's Shift):
+              </label>
+              <div className="grid grid-cols-4 gap-2 mb-2">
+                {[1, 5, 10, 20].map((num) => (
+                  <button
+                    key={num}
+                    type="button"
+                    onClick={() => setAddedQty(num)}
+                    className={`py-2 text-xs font-black rounded-lg border transition-all ${
+                      addedQty === num
+                        ? 'bg-blue-600 text-white border-blue-700 shadow-sm'
+                        : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                    }`}
+                  >
+                    +{num} Pcs
+                  </button>
+                ))}
+              </div>
+              <input
+                type="number"
+                min="1"
+                max={feedbackAssignment.required_qty - feedbackAssignment.completed_qty}
+                value={addedQty}
+                onChange={(e) => setAddedQty(parseInt(e.target.value) || 1)}
+                className="w-full px-3 py-2 text-xs font-mono font-bold rounded-lg border border-slate-300 bg-slate-50 text-slate-900"
+              />
+            </div>
+
+            {/* Floor Notes */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Floor Supervisor Remarks / Notes:
+              </label>
+              <textarea
+                rows={2}
+                value={feedbackNote}
+                onChange={(e) => setFeedbackNote(e.target.value)}
+                placeholder="e.g. Cutting line completed 10 pcs, glass edge quality verified."
+                className="w-full p-2.5 text-xs rounded-lg border border-slate-300 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600"
+              ></textarea>
+            </div>
+
+            {/* Actions */}
+            <div className="space-y-2 pt-2">
+              <button
+                type="button"
+                disabled={submittingFeedback}
+                onClick={() => handleSupervisorSubmitFeedback(false)}
+                className="w-full py-2.5 bg-blue-700 hover:bg-blue-800 text-white font-extrabold text-xs rounded-xl shadow transition-all flex items-center justify-center gap-2"
+              >
+                <span>Submit Progress (+{addedQty} Pcs)</span>
+              </button>
+
+              <button
+                type="button"
+                disabled={submittingFeedback}
+                onClick={() => handleSupervisorSubmitFeedback(true)}
+                className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-2"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Mark Item Entirely Complete</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -34,13 +34,13 @@
 
 ## 2. User Roles & Access Scope
 
-The portal defines 3 distinct operational roles:
+The portal defines 2 active system account roles (Workers do NOT access portal directly):
 
-| Role | Permitted Capabilities | Restricted Actions | Primary Navigation |
+| Role | Accounts | Permitted Capabilities | Primary Navigation |
 | :--- | :--- | :--- | :--- |
-| **Owner / Admin** | Create orders, edit orders, upload slips, manage customers, assign workers, approve/reject completed work, dispatch orders, export reports, manage workers & settings. | None | Dashboard, Orders, Production, Dispatch, Customers, Reports, Settings |
-| **Supervisor** | View orders, assign work to line workers, monitor production progress, inspect completed work, send for rework, process dispatch. | Cannot edit system settings or delete critical records. | Dashboard, Orders, Production, Dispatch, Customers, Reports |
-| **Worker** | View assigned work cards, update completed quantities, add task notes, mark work complete, view completed work history. | **Strictly locked out** of Dashboard, Orders, Customer Directory, Reports, Settings, and other workers' tasks. Server API returns `403 Forbidden`. | My Work, Completed |
+| **Owner / Admin** | **Vikash**, **Naveen** | Full control: Create/edit orders, upload slips, manage customers, assign tasks, inspect quality, approve dispatch, export reports, and manage settings. | Dashboard, Orders, Production, Dispatch, Customers, Reports, Settings |
+| **Shift Supervisor** | **Supervisor 1**, **Supervisor 2**, **Supervisor 3** | Manage daily shop-floor production: Assign tasks, submit floor progress feedback & piece counts on behalf of workers, inspect completed work, send for rework, process dispatch. | Dashboard, Orders, Production, Dispatch, Customers, Reports |
+| **Floor Line Worker** | *(Internal Personnel Only)* | **No Portal Access.** Shift Supervisors log all production progress and floor feedback on behalf of floor workers. | *(No Login / Portal Access)* |
 
 ---
 

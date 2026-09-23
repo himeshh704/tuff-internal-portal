@@ -23,48 +23,66 @@ const DB_FILE_PATH = path.join(process.cwd(), 'factory_server_db.json');
 export const INITIAL_USER_ACCOUNTS: UserAccount[] = [
   {
     id: 'user-1',
-    name: 'Rajesh Patel',
+    name: 'Vikash',
     role: 'owner',
-    email: 'owner@ashapurituff.com',
+    email: 'vikash@ashapurituff.com',
     passwordHash: 'admin123',
     phone: '+91 98250 00001',
     avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
   },
   {
     id: 'user-2',
-    name: 'Vikram Singh',
-    role: 'supervisor',
-    email: 'supervisor@ashapurituff.com',
-    passwordHash: 'super123',
+    name: 'Naveen',
+    role: 'owner',
+    email: 'naveen@ashapurituff.com',
+    passwordHash: 'admin123',
     phone: '+91 98250 00002',
-    line_assigned: 'Shift A • Production Floor',
+    avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
   },
   {
     id: 'user-3',
-    name: 'Rahul Sharma',
-    role: 'worker',
-    email: 'rahul@ashapurituff.com',
-    passwordHash: 'worker123',
+    name: 'Supervisor 1',
+    role: 'supervisor',
+    email: 'supervisor1@ashapurituff.com',
+    passwordHash: 'super123',
     phone: '+91 98250 00003',
-    line_assigned: 'Cutting Line 1',
+    line_assigned: 'Shift A • Production Floor',
   },
   {
     id: 'user-4',
-    name: 'Suresh Kumar',
-    role: 'worker',
-    email: 'suresh@ashapurituff.com',
-    passwordHash: 'worker123',
+    name: 'Supervisor 2',
+    role: 'supervisor',
+    email: 'supervisor2@ashapurituff.com',
+    passwordHash: 'super123',
     phone: '+91 98250 00004',
-    line_assigned: 'Tempering Line',
+    line_assigned: 'Shift B • Cutting & Tempering',
   },
   {
     id: 'user-5',
-    name: 'Amit Verma',
-    role: 'worker',
-    email: 'amit@ashapurituff.com',
-    passwordHash: 'worker123',
+    name: 'Supervisor 3',
+    role: 'supervisor',
+    email: 'supervisor3@ashapurituff.com',
+    passwordHash: 'super123',
     phone: '+91 98250 00005',
-    line_assigned: 'Polishing & Edging',
+    line_assigned: 'Shift C • Polishing & Edging',
+  },
+  {
+    id: 'user-6',
+    name: 'Rahul Sharma',
+    role: 'worker',
+    email: 'rahul@ashapurituff.com',
+    passwordHash: '',
+    phone: '+91 98250 00006',
+    line_assigned: 'Cutting Line 1',
+  },
+  {
+    id: 'user-7',
+    name: 'Suresh Kumar',
+    role: 'worker',
+    email: 'suresh@ashapurituff.com',
+    passwordHash: '',
+    phone: '+91 98250 00007',
+    line_assigned: 'Tempering Line',
   },
 ];
 
@@ -200,16 +218,14 @@ export const serverDb = {
   updateWorkerQuantity: (
     assignmentId: string,
     addedQty: number,
-    workerId: string,
-    workerName: string
+    updaterId: string,
+    updaterName: string,
+    updaterRole: string = 'supervisor',
+    notes?: string
   ) => {
     const dbData = loadDatabase();
     const asgn = dbData.workAssignments.find((a) => a.id === assignmentId);
     if (!asgn) throw new Error('Assignment not found');
-
-    if (asgn.worker_id !== workerId) {
-      throw new Error('Unauthorized: This task is assigned to another worker');
-    }
 
     const newCompleted = asgn.completed_qty + addedQty;
     if (newCompleted > asgn.required_qty) {
@@ -228,10 +244,10 @@ export const serverDb = {
     dbData.activityLogs.unshift({
       id: `act-${Date.now()}`,
       order_number: asgn.order_number,
-      user_name: workerName,
-      user_role: 'worker',
-      action: 'Quantity Updated',
-      details: `Added ${addedQty} pcs. Total: ${newCompleted}/${asgn.required_qty}`,
+      user_name: updaterName,
+      user_role: updaterRole as any,
+      action: 'Floor Feedback & Progress',
+      details: `Added ${addedQty} pcs for ${asgn.worker_name}. Total: ${newCompleted}/${asgn.required_qty}.${notes ? ` Note: ${notes}` : ''}`,
       created_at: new Date().toISOString(),
     });
 
@@ -239,14 +255,15 @@ export const serverDb = {
     return asgn;
   },
 
-  markAssignmentComplete: (assignmentId: string, workerId: string, workerName: string) => {
+  markAssignmentComplete: (
+    assignmentId: string,
+    updaterId: string,
+    updaterName: string,
+    updaterRole: string = 'supervisor'
+  ) => {
     const dbData = loadDatabase();
     const asgn = dbData.workAssignments.find((a) => a.id === assignmentId);
     if (!asgn) throw new Error('Assignment not found');
-
-    if (asgn.worker_id !== workerId) {
-      throw new Error('Unauthorized: This task is assigned to another worker');
-    }
 
     asgn.status = 'Needs Checking';
     asgn.completed_at = new Date().toISOString();
@@ -265,8 +282,8 @@ export const serverDb = {
     dbData.activityLogs.unshift({
       id: `act-${Date.now()}`,
       order_number: asgn.order_number,
-      user_name: workerName,
-      user_role: 'worker',
+      user_name: updaterName,
+      user_role: updaterRole as any,
       action: 'Work Completed',
       details: `Marked work complete for ${asgn.item_name}. Pending owner check.`,
       created_at: new Date().toISOString(),

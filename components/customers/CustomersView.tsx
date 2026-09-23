@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import { Customer, Order } from '@/lib/types';
 import { db } from '@/lib/db';
-import { Users, UserPlus, Phone, MapPin, Search, Package, Plus, X } from 'lucide-react';
+import { Users, UserPlus, Phone, MapPin, Search, Package, Plus, X, MessageSquare } from 'lucide-react';
+import { formatPhoneForWhatsApp, openWhatsApp } from '@/lib/whatsapp';
 
 interface CustomersViewProps {
   customers: Customer[];
@@ -119,14 +120,25 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
                 </div>
               </div>
 
-              {/* Order History Trigger */}
-              <div className="pt-2 border-t border-outline-variant/30">
+              {/* Action Buttons */}
+              <div className="pt-2 border-t border-outline-variant/30 flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    const cleanPhone = formatPhoneForWhatsApp(cust.phone);
+                    openWhatsApp(`https://wa.me/${cleanPhone}?text=Hello%20${encodeURIComponent(cust.name)}%2C%20greeting%20from%20Ashapuri%20Tuff%20Processing%20Unit.`);
+                  }}
+                  className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-950 font-bold text-xs rounded-lg border border-emerald-300 flex items-center gap-1 transition-all"
+                >
+                  <MessageSquare className="w-3.5 h-3.5 text-emerald-700" />
+                  <span>WhatsApp</span>
+                </button>
+
                 <button
                   onClick={() => setSelectedCust(cust)}
-                  className="w-full py-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                  className="flex-1 py-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1.5"
                 >
                   <Package className="w-3.5 h-3.5 text-primary" />
-                  <span>View Order History ({custOrders.length})</span>
+                  <span>Order History ({custOrders.length})</span>
                 </button>
               </div>
             </div>

@@ -53,21 +53,24 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
         )}
 
-        <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-primary text-on-primary flex items-center justify-center font-bold shadow-sm">
-          <Factory className="w-5 h-5" />
+        <div className="h-10 md:h-11 px-2 py-1 rounded-xl bg-white border border-slate-200 flex items-center shadow-sm overflow-hidden">
+          <img
+            src="/logo.jpg"
+            alt="Ashapuri Tuff Logo"
+            className="h-full w-auto object-contain"
+          />
         </div>
         <div>
           <div className="flex items-center gap-1.5">
-            <h1 className="font-extrabold text-on-surface text-base md:text-lg tracking-tight leading-tight">
-              MA Ashapuri Tuff
+            <h1 className="font-black text-slate-950 text-base md:text-lg tracking-tight leading-none">
+              Ashapuri Tuff
             </h1>
-            <span className="text-[9px] md:text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.2 rounded-full">
+            <span className="text-[9px] md:text-[10px] font-mono font-black bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.5 rounded-full">
               PORTAL
             </span>
           </div>
-          <p className="text-[10px] md:text-xs text-secondary flex items-center gap-1.5 font-medium mt-0.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
-            Floor Line 01 • Shift A
+          <p className="text-[9px] md:text-[10px] text-amber-700 font-extrabold uppercase tracking-wider mt-0.5">
+            Strengthening Your Glass
           </p>
         </div>
       </div>

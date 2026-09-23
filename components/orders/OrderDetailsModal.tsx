@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { Order } from '@/lib/types';
-import { X, Calendar, User, Phone, MapPin, FileText, CheckCircle2, Clock, AlertTriangle } from 'lucide-react';
+import { X, Calendar, User, Phone, MapPin, FileText, CheckCircle2, Clock, AlertTriangle, MessageSquare } from 'lucide-react';
+import { getOrderCreatedWhatsAppUrl, getOrderDispatchedWhatsAppUrl, openWhatsApp } from '@/lib/whatsapp';
 
 interface OrderDetailsModalProps {
   order: Order | null;
@@ -250,17 +251,33 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
             Close
           </button>
 
-          {(order.status === 'New' || order.status === 'In Production') && (
+          <div className="flex items-center gap-2">
             <button
               onClick={() => {
-                onClose();
-                onAssignWorkModal(order);
+                const waUrl =
+                  order.status === 'Completed'
+                    ? getOrderDispatchedWhatsAppUrl(order)
+                    : getOrderCreatedWhatsAppUrl(order);
+                openWhatsApp(waUrl);
               }}
-              className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-extrabold rounded-lg text-xs shadow-md"
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-lg text-xs shadow-md flex items-center gap-1.5 active:scale-95 transition-all"
             >
-              Assign Workers
+              <MessageSquare className="w-4 h-4" />
+              <span>Send WhatsApp Notice</span>
             </button>
-          )}
+
+            {(order.status === 'New' || order.status === 'In Production') && (
+              <button
+                onClick={() => {
+                  onClose();
+                  onAssignWorkModal(order);
+                }}
+                className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-extrabold rounded-lg text-xs shadow-md"
+              >
+                Assign Workers
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
