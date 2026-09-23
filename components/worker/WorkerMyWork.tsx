@@ -36,7 +36,7 @@ export const WorkerMyWork: React.FC<WorkerMyWorkProps> = ({
     setErrorMsg('');
   };
 
-  const handleSaveProgress = (e: React.FormEvent) => {
+  const handleSaveProgress = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeAssignment) return;
 
@@ -48,18 +48,22 @@ export const WorkerMyWork: React.FC<WorkerMyWorkProps> = ({
         note
       );
       setActiveAssignment(null);
-      onRefresh();
+      setTimeout(() => {
+        onRefresh();
+      }, 200);
     } catch (err: any) {
       setErrorMsg(err.message || 'Error updating progress');
     }
   };
 
-  const handleMarkComplete = (asgnId: string) => {
+  const handleMarkComplete = async (asgnId: string) => {
     if (confirm('Mark this assigned work as complete and send for checking?')) {
       try {
         db.markWorkComplete(asgnId, worker.name);
-        alert('Work marked complete! Sent to Owner for checking.');
-        onRefresh();
+        alert('Work marked complete! Sent to Owner for quality verification.');
+        setTimeout(() => {
+          onRefresh();
+        }, 200);
       } catch (err: any) {
         alert(err.message || 'Error marking complete');
       }

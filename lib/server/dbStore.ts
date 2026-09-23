@@ -283,12 +283,25 @@ export const serverDb = {
 
     const newCompleted = Math.min(asgn.required_qty, (asgn.completed_qty || 0) + addedQty);
     asgn.completed_qty = newCompleted;
-    asgn.status = 'In Progress';
+    if (newCompleted >= asgn.required_qty) {
+      asgn.status = 'Needs Checking';
+      asgn.completed_at = new Date().toISOString();
+    } else {
+      asgn.status = 'In Progress';
+    }
 
     const order = dbData.orders.find((o) => o.id === asgn.order_id || o.order_number === asgn.order_number);
     if (order) {
       const item = order.items.find((i) => i.id === asgn.order_item_id || i.item_name === asgn.item_name);
-      if (item) item.completed_qty = newCompleted;
+      if (item) {
+        item.completed_qty = newCompleted;
+        if (newCompleted >= asgn.required_qty) {
+          item.status = 'Needs Checking';
+        }
+      }
+      if (newCompleted >= asgn.required_qty) {
+        order.status = 'Needs Checking';
+      }
     }
 
     dbData.activityLogs.unshift({
@@ -328,6 +341,8 @@ export const serverDb = {
     const order = dbData.orders.find((o) => o.id === asgn.order_id || o.order_number === asgn.order_number);
     if (order) {
       order.status = 'Needs Checking';
+      const item = order.items.find((i) => i.id === asgn.order_item_id || i.item_name === asgn.item_name);
+      if (item) item.status = 'Needs Checking';
     }
 
     dbData.activityLogs.unshift({
@@ -342,6 +357,78 @@ export const serverDb = {
 
     saveDatabase(dbData);
     return asgn;
+  },
+
+  approveAssignment: (assignmentId: string, approverName: string) => {
+    const dbData = loadDatabase();
+    let asgn = dbData.workAssignments.find(
+      (a) => a.id === assignmentId || a.order_number === assignmentId || a.order_id === assignmentId
+    );
+    if (asgn) {
+      asgn.status = 'Approved';
+      const order = dbData.orders.find((o) => o.id === asgn.order_id || o.order_number === asgn.order_number);
+      if (order) {
+        const item = order.items.find((i) => i.id === asgn.order_item_id || i.item_name === asgn.item_name);
+        if (item) item.status = 'Ready';
+        const allReady = order.items.every((i) => i.status === 'Ready' || i.status === 'Completed');
+        if (allReady) order.status = 'Ready';
+      }
+      dbData.activityLogs.unshift({
+        id: `act-${Date.now()}`,
+        order_number: asgn.order_number,
+        user_name: approverName,
+        user_role: 'owner',
+        action: 'Verification Approved',
+        details: `Approved completed work for ${asgn.item_name}`,
+        created_at: new Date().toISOString(),
+      });
+      saveDatabase(dbData);
+    }
+  },
+
+  rejectAssignmentForRework: (
+    assignmentId: string,
+    reason: string,
+    rejectedByName: string,
+    rejectedById: string
+  ) => {
+    const dbData = loadDatabase();
+    let asgn = dbData.workAssignments.find(
+      (a) => a.id === assignmentId || a.order_number === assignmentId || a.order_id === assignmentId
+    );
+    if (asgn) {
+      asgn.status = 'Rework';
+      const reworkTask: ReworkTask = {
+        id: `rework-${Date.now()}`,
+        assignment_id: asgn.id,
+        order_id: asgn.order_id,
+        order_number: asgn.order_number,
+        order_item_id: asgn.order_item_id,
+        item_name: asgn.item_name,
+        reason,
+        requested_by_id: rejectedById,
+        requested_by_name: rejectedByName,
+        created_at: new Date().toISOString(),
+        resolved: false,
+      };
+      dbData.reworkTasks.unshift(reworkTask);
+      const order = dbData.orders.find((o) => o.id === asgn.order_id || o.order_number === asgn.order_number);
+      if (order) {
+        order.status = 'Rework';
+        const item = order.items.find((i) => i.id === asgn.order_item_id || i.item_name === asgn.item_name);
+        if (item) item.status = 'Rework';
+      }
+      dbData.activityLogs.unshift({
+        id: `act-${Date.now()}`,
+        order_number: asgn.order_number,
+        user_name: rejectedByName,
+        user_role: 'owner',
+        action: 'Rework Requested',
+        details: `Rejected ${asgn.item_name} for rework. Reason: ${reason}`,
+        created_at: new Date().toISOString(),
+      });
+      saveDatabase(dbData);
+    }
   },
 
   getCustomers: (): Customer[] => {

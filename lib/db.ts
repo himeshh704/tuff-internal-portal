@@ -78,7 +78,17 @@ class FactoryStore {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         try {
-          this.data = JSON.parse(saved);
+          const parsed = JSON.parse(saved);
+          // Sanitize old mock logs with invalid names
+          if (parsed.activityLogs && Array.isArray(parsed.activityLogs)) {
+            parsed.activityLogs = parsed.activityLogs.map((log: ActivityLog) => {
+              let name = log.user_name;
+              if (name === 'Rajesh Patel') name = 'Vikash';
+              if (name === 'Vikram Singh' || name === 'Vikram Singh (SUPERVISOR)') name = 'Supervisor 1';
+              return { ...log, user_name: name };
+            });
+          }
+          this.data = parsed;
         } catch {
           this.data = CLEAN_DATA;
         }
@@ -181,7 +191,14 @@ class FactoryStore {
       );
       if (existingKey) {
         const existing = mergedMap.get(existingKey)!;
-        mergedMap.set(existingKey, { ...existing, ...so });
+        // Keep status if existing is further along
+        const statusRank: Record<string, number> = {
+          'New': 1, 'In Production': 2, 'Needs Checking': 3, 'Rework': 4, 'Ready': 5, 'Completed': 6
+        };
+        const exRank = statusRank[existing.status] || 0;
+        const soRank = statusRank[so.status] || 0;
+        const finalStatus = soRank >= exRank ? so.status : existing.status;
+        mergedMap.set(existingKey, { ...existing, ...so, status: finalStatus });
       } else {
         mergedMap.set(so.id, so);
       }
@@ -200,8 +217,26 @@ class FactoryStore {
     const mergedMap = new Map<string, WorkAssignment>();
     this.data.workAssignments.forEach((a) => mergedMap.set(a.id, a));
 
+    const statusRank: Record<string, number> = {
+      'In Progress': 1, 'Needs Checking': 2, 'Rework': 3, 'Approved': 4
+    };
+
     serverAssignments.forEach((sa) => {
-      mergedMap.set(sa.id, sa);
+      if (mergedMap.has(sa.id)) {
+        const existing = mergedMap.get(sa.id)!;
+        const finalQty = Math.max(existing.completed_qty || 0, sa.completed_qty || 0);
+        const exRank = statusRank[existing.status] || 0;
+        const saRank = statusRank[sa.status] || 0;
+        const finalStatus = saRank >= exRank ? sa.status : existing.status;
+        mergedMap.set(sa.id, {
+          ...existing,
+          ...sa,
+          completed_qty: finalQty,
+          status: finalStatus,
+        });
+      } else {
+        mergedMap.set(sa.id, sa);
+      }
     });
 
     this.data.workAssignments = Array.from(mergedMap.values());
@@ -213,7 +248,7 @@ class FactoryStore {
     return this.data.orders.find((o) => o.id === id || o.order_number === id);
   }
 
-  deleteOrder(orderId: string) {
+  deleteOrder(orderId: string, userName?: string) {
     const ord = this.getOrderById(orderId);
     if (!ord) return;
     this.data.orders = this.data.orders.filter((o) => o.id !== orderId && o.order_number !== orderId);
@@ -223,7 +258,7 @@ class FactoryStore {
     this.logActivity({
       order_id: ord.id,
       order_number: ord.order_number,
-      user_name: 'Rajesh Patel',
+      user_name: userName || 'Vikash',
       user_role: 'owner',
       action: 'Order Deleted',
       details: `Deleted order ${ord.order_number} and all associated production tasks`,
@@ -239,21 +274,24 @@ class FactoryStore {
     }
   }
 
-  createOrder(orderData: {
-    customer_id: string;
-    customer_name: string;
-    customer_phone: string;
-    expected_delivery: string;
-    priority: Order['priority'];
-    notes?: string;
-    slip_url?: string;
-    items: {
-      item_name: string;
-      dimensions: string;
-      thickness: string;
-      required_qty: number;
-    }[];
-  }): Order {
+  createOrder(
+    orderData: {
+      customer_id: string;
+      customer_name: string;
+      customer_phone: string;
+      expected_delivery: string;
+      priority: Order['priority'];
+      notes?: string;
+      slip_url?: string;
+      items: {
+        item_name: string;
+        dimensions: string;
+        thickness: string;
+        required_qty: number;
+      }[];
+    },
+    creatorName?: string
+  ): Order {
     const nextSeq = this.data.orders.length + 1;
     const seqStr = nextSeq.toString().padStart(5, '0');
     const orderNumber = `${this.data.settings.auto_order_prefix}${seqStr}`;
@@ -292,7 +330,7 @@ class FactoryStore {
     this.logActivity({
       order_id: newOrder.id,
       order_number: newOrder.order_number,
-      user_name: 'Rajesh Patel',
+      user_name: creatorName || 'Vikash',
       user_role: 'owner',
       action: 'Order Created',
       details: `Created ${orderNumber} for ${newOrder.customer_name} (${newItems.length} items)`,
@@ -317,7 +355,8 @@ class FactoryStore {
     orderId: string,
     itemId: string,
     workerId: string,
-    requiredQty: number
+    requiredQty: number,
+    assignerName?: string
   ): WorkAssignment {
     const order = this.getOrderById(orderId);
     if (!order) throw new Error('Order not found');
@@ -358,7 +397,7 @@ class FactoryStore {
     this.logActivity({
       order_id: order.id,
       order_number: order.order_number,
-      user_name: 'Vikram Singh',
+      user_name: assignerName || 'Supervisor 1',
       user_role: 'supervisor',
       action: 'Work Assigned',
       details: `Assigned ${item.item_name} (${requiredQty} pcs) to ${worker.name}`,
@@ -386,13 +425,26 @@ class FactoryStore {
     }
 
     assignment.completed_qty = newCompleted;
-    assignment.status = 'In Progress';
+
+    // AUTO-FINISH IF ALL QTY PRODUCED
+    if (newCompleted >= assignment.required_qty) {
+      assignment.status = 'Needs Checking';
+      assignment.completed_at = new Date().toISOString();
+    } else {
+      assignment.status = 'In Progress';
+    }
 
     const order = this.getOrderById(assignment.order_id);
     if (order) {
       const item = order.items.find((i) => i.id === assignment.order_item_id);
       if (item) {
         item.completed_qty = newCompleted;
+        if (newCompleted >= assignment.required_qty) {
+          item.status = 'Needs Checking';
+        }
+      }
+      if (newCompleted >= assignment.required_qty) {
+        order.status = 'Needs Checking';
       }
     }
 
@@ -406,6 +458,19 @@ class FactoryStore {
     });
 
     this.save();
+
+    // Sync with Server API immediately
+    if (typeof window !== 'undefined') {
+      fetch('/api/worker/my-work', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'update_qty',
+          assignmentId: assignment.id,
+          addedQty: addedQty,
+        }),
+      }).catch(console.error);
+    }
   }
 
   markWorkComplete(assignmentId: string, workerName: string) {
@@ -434,12 +499,24 @@ class FactoryStore {
       order_id: assignment.order_id,
       order_number: assignment.order_number,
       user_name: workerName,
-      user_role: 'worker',
+      user_role: 'supervisor',
       action: 'Work Completed',
       details: `Marked work complete for ${assignment.item_name}. Pending owner checking.`,
     });
 
     this.save();
+
+    // Sync with Server API immediately
+    if (typeof window !== 'undefined') {
+      fetch('/api/worker/my-work', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'mark_complete',
+          assignmentId: assignment.id,
+        }),
+      }).catch(console.error);
+    }
   }
 
   approveWork(assignmentId: string, approverName: string) {
@@ -473,6 +550,14 @@ class FactoryStore {
     });
 
     this.save();
+
+    if (typeof window !== 'undefined') {
+      fetch(`/api/orders/${assignment.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'approve', assignmentId: assignment.id }),
+      }).catch(console.error);
+    }
   }
 
   rejectForRework(
@@ -520,9 +605,17 @@ class FactoryStore {
     });
 
     this.save();
+
+    if (typeof window !== 'undefined') {
+      fetch(`/api/orders/${assignment.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'rework', assignmentId: assignment.id, reason }),
+      }).catch(console.error);
+    }
   }
 
-  dispatchOrder(orderId: string, vehicleRef?: string, note?: string) {
+  dispatchOrder(orderId: string, vehicleRef?: string, note?: string, userName?: string) {
     const order = this.getOrderById(orderId);
     if (!order) throw new Error('Order not found');
 
@@ -536,7 +629,7 @@ class FactoryStore {
     this.logActivity({
       order_id: order.id,
       order_number: order.order_number,
-      user_name: 'Rajesh Patel',
+      user_name: userName || 'Vikash',
       user_role: 'owner',
       action: 'Order Dispatched',
       details: `Dispatched order ${order.order_number} to ${order.customer_name}. Vehicle: ${vehicleRef || 'N/A'}`,
