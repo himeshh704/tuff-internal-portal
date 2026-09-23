@@ -1,104 +1,158 @@
-# MA ASHAPURI TUFF — FACTORY PORTAL
-## Non-Technical Client Operating Manual & Training Workbook
+# ASHAPURI TUFF — FACTORY ENTERPRISE PORTAL
+## Official Client Operating Manual, System Architecture & Commercial Invoice
+
+**Tagline:** *STRENGTHENING YOUR GLASS*  
+**Client:** Ashapuri Tuff (Vikash & Naveen)  
+**Location:** Morbi-Rajkot Industrial Zone, Gujarat  
+**GitHub Repository:** `https://github.com/himeshh704/tuff-internal-portal.git`  
+**Document Version:** 2.0 (Production Release)
 
 ---
 
-### Welcome to Your Factory Digital Portal!
+## 1. Executive Summary & Core Purpose
 
-This simple workbook explains how to use **MA Ashapuri Tuff — Factory Portal** to manage your daily glass processing orders, floor worker assignments, quality checks, and customer deliveries.
+Welcome to the official operating workbook and technical documentation for **Ashapuri Tuff Factory Portal**.
 
-The system is designed to be **extremely simple** to use, replacing paper slips and WhatsApp messages with a clean digital shop notebook.
+This enterprise application replaces paper job slips, phone calls, and manual registers with a unified, real-time digital shop-floor management platform designed specifically for toughened glass processing plants.
 
----
-
-## 1. Quick Login & Role Summary
-
-| Who Are You? | Email Account | Password | What You Can Do |
-| :--- | :--- | :--- | :--- |
-| **Factory Owner (Vikash)** | `vikash@ashapurituff.com` | `admin123` | Full Admin Control: Create/edit orders, manage customers, inspect quality, approve dispatch, view monthly reports, and manage factory settings. |
-| **Factory Owner (Naveen)** | `naveen@ashapurituff.com` | `admin123` | Full Admin Control: Create/edit orders, manage customers, inspect quality, approve dispatch, view monthly reports, and manage factory settings. |
-| **Supervisor 1 (Shift A)** | `supervisor1@ashapurituff.com` | `super123` | Manage daily production: Assign line tasks, send shop floor progress feedback & piece counts, inspect quality, and process dispatches. |
-| **Supervisor 2 (Shift B)** | `supervisor2@ashapurituff.com` | `super123` | Manage daily production: Assign line tasks, send shop floor progress feedback & piece counts, inspect quality, and process dispatches. |
-| **Supervisor 3 (Shift C)** | `supervisor3@ashapurituff.com` | `super123` | Manage daily production: Assign line tasks, send shop floor progress feedback & piece counts, inspect quality, and process dispatches. |
-
-> [!NOTE]
-> **Floor Workers do NOT log into the portal directly.** The 3 Shift Supervisors log into the system and submit production updates and shop-floor feedback on behalf of the workers.
+### Key Capabilities Installed:
+1. **Real-time Glass Processing Pipeline**: Tracks cutting, edging, washing, tempering, quality checking, and dispatching.
+2. **Supervisor Ergonomic Progress Logging**: Shop-floor Supervisors log completed piece counts (`+1, +5, +10`) and notes on behalf of floor line workers without requiring worker logins.
+3. **1-Click WhatsApp Dispatch & Order Advice**: Instant WhatsApp message generation with full glass specifications, vehicle numbers, and delivery advice links.
+4. **Role-Based Security**: Strict JWT cookie session protection separated for Owners (Admins) and Shift Supervisors.
 
 ---
 
-## 2. Daily Operational Guide (Step-by-Step)
+## 2. User Credentials & Access Matrix
 
-### Step 1: Owner Creates a New Order
-1. Log in as **Vikash** or **Naveen** (`vikash@ashapurituff.com` / `naveen@ashapurituff.com`).
-2. Go to **Orders** → Click **+ Create Order**.
-3. Select or type Customer Name, Phone Number, Expected Delivery Date, and Priority.
-4. Add your Glass Items (e.g. *5mm Clear Toughened Glass*, *914 × 1828 mm*, *20 pcs*).
-5. Click **Create Order**.
-   - *The system automatically creates Order # `MAT-2026-00001` with status **New**.*
+| Role | Name / Identifier | Login Email / Username | Password | System Responsibilities |
+| :--- | :--- | :--- | :--- | :--- |
+| **Owner (Admin)** | Vikash | `vikash@ashapurituff.com` | `admin123` | Full System Access: Order creation, customer database, line assignment, quality checks, dispatching, financial reports. |
+| **Owner (Admin)** | Naveen | `naveen@ashapurituff.com` | `admin123` | Full System Access: Order creation, customer database, line assignment, quality checks, dispatching, financial reports. |
+| **Shift Supervisor** | Supervisor 1 (Shift A) | `supervisor1@ashapurituff.com` or `supervisor1` | `super123` | Shop-floor management: Send progress feedback, log piece counts, enter supervisor notes, mark jobs completed. |
+| **Shift Supervisor** | Supervisor 2 (Shift B) | `supervisor2@ashapurituff.com` or `supervisor2` | `super123` | Shop-floor management: Send progress feedback, log piece counts, enter supervisor notes, mark jobs completed. |
+| **Shift Supervisor** | Supervisor 3 (Shift C) | `supervisor3@ashapurituff.com` or `supervisor3` | `super123` | Shop-floor management: Send progress feedback, log piece counts, enter supervisor notes, mark jobs completed. |
 
----
-
-### Step 2: Assigning Glass Items to Production Lines
-1. Go to **Production** on the left menu.
-2. Select the Active Order, the Glass Item, and choose the Production Line / Worker.
-3. Click **Assign Work Now**.
+> [!IMPORTANT]
+> **Floor Line Workers do NOT log into the system directly.** Supervisors manage and report all production output on their behalf to maintain maximum security and operational simplicity on the shop floor.
 
 ---
 
-### Step 3: Supervisors Submit Shop Floor Feedback & Progress
-1. Shift Supervisor logs into the portal (`supervisor1@ashapurituff.com`, `supervisor2@ashapurituff.com`, or `supervisor3@ashapurituff.com`).
-2. Go to **Production** → Locate the active assignment line card.
-3. Click **⚡ Send Floor Progress Feedback**.
-4. Select or enter finished piece count (e.g., `+5` or `+10` pcs), type supervisor floor notes (e.g., *"Cutting completed 10 pcs, edge quality verified"*), and click **Submit Progress**.
-5. When all pieces are finished, click **Mark Item Entirely Complete**.
-   - *The job moves to **Needs Checking** for quality verification.*
+## 3. What is What — Complete Feature & Module Breakdown
+
+### 📊 A. Main Executive Dashboard
+- **Live Line Health**: Visual status indicators for Line 01 (Cutting & Edging), Line 02 (Washing & Processing), and Line 03 (Furnace Tempering & Quality).
+- **Metric Cards**: Total Active Orders, Pending Square Meters of Glass, Finished Pieces, and Dispatched Orders.
+- **Urgent Notifications**: Displays orders nearing target delivery dates.
+
+### 📦 B. Order Management View
+- **+ Create Order**: Form to enter Customer Name, Contact Number, Delivery Date, Priority (Normal / Express / Urgent), and detailed Glass Items.
+- **Glass Specification Matrix**: Input Thickness (4mm, 5mm, 6mm, 8mm, 10mm, 12mm), Dimensions in mm (Height × Width), Quantity, Glass Type (Clear, Frosted, Tinted, Low-E), and Edge Processing (Rough / Flat Polish / Beveled).
+- **Order Lifecycle**: `New` ➔ `In Production` ➔ `Needs Checking` ➔ `Ready for Dispatch` ➔ `Dispatched`.
+
+### 🏭 C. Shop Floor Production View
+- **Line Assignment Engine**: Owners/Supervisors assign order glass items to specific line machines and shift workers.
+- **⚡ Send Floor Progress Feedback**: Modal for Supervisors to:
+  - Add completed piece increments (`+1`, `+5`, `+10` or custom number).
+  - Type line progress notes (e.g. *"Cutting & edging completed for 15 pcs, ready for tempering furnace"*).
+  - Mark item 100% complete to forward to Quality Inspection.
+
+### 🔍 D. Quality Checking & Rework Queue
+- **Inspection Queue**: Displays completed glass lots awaiting quality approval.
+- **Approve & Mark Ready**: Moves order directly to Dispatch Staging.
+- **Send for Rework**: If defects or breakage occur during tempering/polishing, Supervisors log rework notes (e.g. *"2 pieces broken during tempering - recutting required"*), moving the item back to production without losing original logs.
+
+### 🚚 E. Dispatch & WhatsApp Advice Engine
+- **Dispatch Staging**: Shows orders marked ready by Quality Inspection.
+- **Vehicle & Driver Logging**: Enter transport vehicle registration (e.g. `GJ-03-AT-9988`) and driver contact.
+- **💬 1-Click WhatsApp Dispatch Advice**: Generates a pre-formatted WhatsApp Web advice link containing:
+  - Customer Name & Order #
+  - Detailed Glass Specifications breakdown (Thickness, Size, Quantity)
+  - Vehicle Registration Number
+  - Dispatch Timestamp & Driver Contact
+
+### 👥 F. Customer Directory
+- Customer profiles with total order history, active jobs, and total business volume.
+- Instant **💬 WhatsApp Notice** trigger for sending direct order updates.
+
+### 📈 G. Reports & Analytics
+- Monthly glass processing volume (in Square Meters & Total Pieces).
+- Shift efficiency breakdown (Shift A vs Shift B vs Shift C output).
+- Exportable CSV datasets for accounting and billing.
 
 ---
 
-### Step 4: Quality Checking & Approval (Owner / Supervisor)
-1. Owner opens **Needs Checking** (or Quality Verification queue).
-2. Inspect the completed glass pieces on the shop floor.
-3. **If Approved**: Click **Approve & Mark Ready**. The order moves to **Ready for Dispatch**.
-4. **If Rejected (Rework Needed)**:
-   - Click **Send for Rework**.
-   - Type what needs to be fixed (e.g. *"2 pieces damaged during edge grinding"*).
-   - Click **Submit Rework**.
-   - *The job moves back to **In Production** for the worker to fix, preserving full history.*
+## 4. Daily Operational Workflow (Step-by-Step)
+
+```mermaid
+flowchart TD
+    A["1. Order Created by Owner (Vikash / Naveen)"] --> B["2. Assigned to Production Line"]
+    B --> C["3. Supervisor logs progress (+1, +5, +10) & notes"]
+    C --> D{"4. Quality Inspection"}
+    D -- "Approved" --> E["5. Moved to Ready for Dispatch"]
+    D -- "Rejected (Defect)" --> F["Send for Rework (Re-enters Line)"]
+    F --> C
+    E --> G["6. Dispatcher logs Vehicle # & triggers WhatsApp Advice"]
+    G --> H["7. Order Archived in Reports"]
+```
 
 ---
 
-### Step 5: Dispatching Finished Glass Orders
-1. Go to **Dispatch** on the left menu.
-2. Under **Ready for Dispatch Queue**, locate the client's order.
-3. Click **Mark as Dispatched**.
-4. Enter truck/vehicle number (e.g. `GJ-01-AT-4820`) and receiving note.
-5. Click **Confirm Dispatch**.
-   - *Order moves to **Completed** and is archived in reports.*
-
----
-
-## 3. Frequently Asked Questions (FAQ)
-
-### Q1: How do I add a new worker to the portal?
-- Log in as **Owner** → Click **Settings** → Scroll to **Factory Personnel & User Directory** → Click **+ Register Worker**. Enter their Name, Phone, and Email.
-
-### Q2: Can workers see reports, customer phone lists, or financial data?
-- **No.** Workers are strictly locked out of Admin screens and can only see their own assigned tasks.
-
-### Q3: How do I export monthly reports for accounting?
-- Go to **Reports** → Select the Month → Click **Download CSV** or **Print PDF**.
-
----
-
-## 4. Operational Sign-off & Client Receipt
+## 5. OFFICIAL COMMERCIAL INVOICE & BILLING SUMMARY
 
 ```
-MA ASHAPURI TUFF — FACTORY SYSTEM RECEIPT
------------------------------------------------------------
-Factory Name: MA Ashapuri Tuff
-Portal URL: http://localhost:3007 (or live domain)
-GitHub Repository: https://github.com/himeshh704/tuff-internal-portal.git
+===================================================================================================
+                                  ASHAPURI TUFF — COMMERCIAL INVOICE
+                                   "STRENGTHENING YOUR GLASS"
+===================================================================================================
+Invoice Number : AT-INV-2026-001                                     Invoice Date : 23-SEP-2026
+Client Name    : Ashapuri Tuff (Vikash & Naveen)                    Payment Terms: Due Net 15
+Location       : Morbi-Rajkot Highway, Gujarat                       Currency     : INR (₹)
+===================================================================================================
 
-Client Signature: _______________________   Date: ____________
-System Trainer: _________________________   Date: ____________
+ITEM DESCRIPTION & TECHNICAL BREAKDOWN                                                 AMOUNT (INR)
+---------------------------------------------------------------------------------------------------
+1. Custom Toughened Glass Processing Architecture & Item Schema                       ₹ 10,000.00
+   - Custom database schema for glass thickness (4-12mm), dimensions, edge polishes,
+     and priority batch processing.
+
+2. Role-Based JWT Security & User Access Control System                                ₹  8,000.00
+   - Secure HTTP-only cookie authentication for 2 Admin Owners (Vikash & Naveen) and 
+     3 Shift Supervisors with generic shift role authorization.
+
+3. Shop-Floor Production Feedback Engine & Piece Counter                               ₹  7,000.00
+   - Ergonomic +1, +5, +10 quick touch piece counter modal with line note logging for 
+     shift supervisors without worker portal overhead.
+
+4. 1-Click WhatsApp Dispatch & Order Advice Engine                                     ₹  7,000.00
+   - Automated wa.me URL generator for sending instant glass specs, vehicle numbers, 
+     and dispatch advice directly to customers.
+
+5. Quality Rework Tracking & Dispatch Vehicle Tracker                                  ₹  6,000.00
+   - Inspection queue, defect rework tracking, transport truck registration logging, 
+     and monthly PDF/CSV report exporter.
+---------------------------------------------------------------------------------------------------
+SUBTOTAL SYSTEM VALUATION                                                             ₹ 38,000.00
+Partner / Preferred Client Discount                                                 - ₹ 26,000.00
+---------------------------------------------------------------------------------------------------
+TOTAL PAYABLE AMOUNT DUE                                                              ₹ 12,000.00
+===================================================================================================
+
+BANK & PAYMENT DETAILS:
+- Account Name   : Software Development Services
+- Payment Mode   : UPI / IMPS / Bank Transfer
+- Reference      : Ashapuri Tuff Portal Development (AT-INV-2026-001)
+
+===================================================================================================
 ```
+
+---
+
+## 6. System Verification & Sign-Off
+
+This document certifies that the **Ashapuri Tuff Factory Enterprise Portal** has been fully developed, tested against static production builds (`npm run build`), updated with official branding and logos, and pushed to the GitHub repository.
+
+**Client Signature (Ashapuri Tuff):** ___________________________   **Date:** _______________
+
+**Development Team Signature:** _______________________________   **Date:** _______________
+
