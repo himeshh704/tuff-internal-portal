@@ -18,8 +18,8 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { orderId, itemId, workerId, requiredQty } = await request.json();
-    const assignment = serverDb.assignWork(orderId, itemId, workerId, requiredQty);
+    const { orderId, itemId, workerId, requiredQty, orderData } = await request.json();
+    const assignment = serverDb.assignWork(orderId, itemId, workerId, requiredQty, orderData);
     return NextResponse.json({ success: true, assignment });
   } catch (err: any) {
     return NextResponse.json(

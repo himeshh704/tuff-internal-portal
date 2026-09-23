@@ -183,13 +183,13 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
     };
 
     // Save to local reactive store
-    db.createOrder(orderPayload);
+    const createdOrder = db.createOrder(orderPayload);
 
-    // Sync to server API in background
+    // Sync to server API in background with exact created order object
     fetch('/api/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(orderPayload),
+      body: JSON.stringify(createdOrder),
     }).catch((err) => console.error('Server sync error:', err));
 
     onOrderCreated();

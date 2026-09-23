@@ -165,13 +165,29 @@ export const serverDb = {
     orderId: string,
     itemId: string,
     workerId: string,
-    requiredQty: number
+    requiredQty: number,
+    orderDataFallback?: any
   ): WorkAssignment => {
     const dbData = loadDatabase();
-    const order = dbData.orders.find((o) => o.id === orderId || o.order_number === orderId);
-    if (!order) throw new Error('Order not found');
+    let order = dbData.orders.find((o) => o.id === orderId || o.order_number === orderId);
 
-    const item = order.items.find((i) => i.id === itemId);
+    if (!order && orderDataFallback) {
+      order = serverDb.createOrder(orderDataFallback);
+    }
+
+    if (!order) {
+      order = dbData.orders.find((o) => orderId.includes(o.order_number) || o.order_number.includes(orderId));
+    }
+
+    if (!order) {
+      throw new Error('Order not found on server database. Please refresh page to sync.');
+    }
+
+    let item = order.items.find((i) => i.id === itemId);
+    if (!item && order.items.length > 0) {
+      item = order.items[0];
+    }
+
     if (!item) throw new Error('Order item not found');
 
     const worker = dbData.users.find((u) => u.id === workerId);
@@ -207,8 +223,8 @@ export const serverDb = {
     dbData.activityLogs.unshift({
       id: `act-${Date.now()}`,
       order_number: order.order_number,
-      user_name: 'Vikram Singh',
-      user_role: 'supervisor',
+      user_name: 'Vikash',
+      user_role: 'owner',
       action: 'Work Assigned',
       details: `Assigned ${requiredQty} pcs of ${item.item_name} to ${worker.name}`,
       created_at: new Date().toISOString(),
@@ -304,36 +320,26 @@ export const serverDb = {
     return loadDatabase().activityLogs;
   },
 
-  createOrder: (orderData: {
-    customer_id: string;
-    customer_name: string;
-    customer_phone: string;
-    expected_delivery: string;
-    priority: Order['priority'];
-    notes?: string;
-    slip_url?: string;
-    items: {
-      item_name: string;
-      dimensions: string;
-      thickness: string;
-      required_qty: number;
-    }[];
-  }): Order => {
+  createOrder: (orderData: any): Order => {
     const dbData = loadDatabase();
-    const nextSeq = dbData.orders.length + 1;
-    const seqStr = nextSeq.toString().padStart(5, '0');
-    const orderNumber = `MAT-2026-${seqStr}`;
-    const orderId = `ord-${Date.now()}`;
 
-    const newItems = orderData.items.map((item, idx) => ({
-      id: `item-${orderId}-${idx + 1}`,
+    const orderId = orderData.id || `ord-${Date.now()}`;
+    const orderNumber = orderData.order_number || `MAT-2026-${(dbData.orders.length + 1).toString().padStart(5, '0')}`;
+
+    const existing = dbData.orders.find((o) => o.id === orderId || o.order_number === orderNumber);
+    if (existing) {
+      return existing;
+    }
+
+    const newItems = (orderData.items || []).map((item: any, idx: number) => ({
+      id: item.id || `item-${orderId}-${idx + 1}`,
       order_id: orderId,
       item_name: item.item_name,
       dimensions: item.dimensions,
       thickness: item.thickness || '5mm',
       required_qty: item.required_qty,
-      completed_qty: 0,
-      status: 'New' as const,
+      completed_qty: item.completed_qty || 0,
+      status: item.status || 'New',
     }));
 
     const newOrder: Order = {
@@ -342,14 +348,14 @@ export const serverDb = {
       customer_id: orderData.customer_id,
       customer_name: orderData.customer_name,
       customer_phone: orderData.customer_phone,
-      order_date: new Date().toISOString().split('T')[0],
+      order_date: orderData.order_date || new Date().toISOString().split('T')[0],
       expected_delivery: orderData.expected_delivery,
-      priority: orderData.priority,
-      status: 'New',
+      priority: orderData.priority || 'Normal',
+      status: orderData.status || 'New',
       notes: orderData.notes,
       slip_url: orderData.slip_url,
       items: newItems,
-      created_at: new Date().toISOString(),
+      created_at: orderData.created_at || new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
 
@@ -358,7 +364,7 @@ export const serverDb = {
     dbData.activityLogs.unshift({
       id: `act-${Date.now()}`,
       order_number: newOrder.order_number,
-      user_name: 'Rajesh Patel',
+      user_name: 'Vikash',
       user_role: 'owner',
       action: 'Order Created',
       details: `Created ${orderNumber} for ${newOrder.customer_name} (${newItems.length} items)`,
