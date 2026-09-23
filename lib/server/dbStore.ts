@@ -163,8 +163,12 @@ export const serverDb = {
 
   getWorkerAssignments: (workerId: string, workerName?: string): WorkAssignment[] => {
     const data = loadDatabase();
+    const activeOrderIds = new Set(data.orders.map((o) => o.id));
+    const activeOrderNumbers = new Set(data.orders.map((o) => o.order_number));
+
     return data.workAssignments.filter(
       (a) =>
+        (activeOrderIds.has(a.order_id) || activeOrderNumbers.has(a.order_number)) &&
         (a.worker_id === workerId ||
           (workerName && a.worker_name.toLowerCase().trim() === workerName.toLowerCase().trim())) &&
         a.status !== 'Approved'
@@ -497,7 +501,7 @@ export const serverDb = {
     const dbData = loadDatabase();
 
     const orderId = orderData.id || `ord-${Date.now()}`;
-    const orderNumber = orderData.order_number || `MAT-2026-${(dbData.orders.length + 1).toString().padStart(5, '0')}`;
+    const orderNumber = orderData.order_number || `AT-2026-${(dbData.orders.length + 1).toString().padStart(5, '0')}`;
 
     const existing = dbData.orders.find((o) => o.id === orderId || o.order_number === orderNumber);
     if (existing) {
