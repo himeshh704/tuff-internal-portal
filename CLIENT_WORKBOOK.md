@@ -107,35 +107,36 @@ flowchart TD
 ===================================================================================================
 Invoice Number : AT-INV-2026-001                                     Invoice Date : 23-SEP-2026
 Client Name    : Ashapuri Tuff (Vikash & Naveen)                    Payment Terms: Due Net 15
-Location       : Industrial Area, Sirohi, Rajasthan                Currency     : INR (₹)
+Location       : Industrial Area, Sirohi, Rajasthan                 Currency     : INR (₹)
 ===================================================================================================
 
 ITEM DESCRIPTION & TECHNICAL BREAKDOWN                                                 AMOUNT (INR)
 ---------------------------------------------------------------------------------------------------
-1. Custom Toughened Glass Processing Architecture & Item Schema                       ₹ 10,000.00
-   - Custom database schema for glass thickness (4-12mm), dimensions, edge polishes,
-     and priority batch processing.
+1. Custom Toughened Glass Processing Architecture & Item Schema                       ₹ 14,000.00
+   - Custom database schema for glass thickness (4-12mm), dimensions in mm, 
+     edge polish types (rough/flat/beveled), and priority processing batch queues.
 
-2. Role-Based JWT Security & User Access Control System                                ₹  8,000.00
+2. Role-Based JWT Security & User Access Control System                                ₹ 11,000.00
    - Secure HTTP-only cookie authentication for 2 Admin Owners (Vikash & Naveen) and 
-     3 Shift Supervisors with generic shift role authorization.
+     3 Shift Supervisors with generic shift role authorization and username alias login.
 
-3. Shop-Floor Production Feedback Engine & Piece Counter                               ₹  7,000.00
+3. Shop-Floor Production Feedback Engine & Piece Counter                               ₹  9,500.00
    - Ergonomic +1, +5, +10 quick touch piece counter modal with line note logging for 
      shift supervisors without worker portal overhead.
 
-4. 1-Click WhatsApp Dispatch & Order Advice Engine                                     ₹  7,000.00
+4. 1-Click WhatsApp Dispatch & Order Advice Engine                                     ₹  8,500.00
    - Automated wa.me URL generator for sending instant glass specs, vehicle numbers, 
      and dispatch advice directly to customers.
 
-5. Quality Rework Tracking & Dispatch Vehicle Tracker                                  ₹  6,000.00
+5. Quality Rework Tracking & Dispatch Vehicle Tracker                                  ₹  7,000.00
    - Inspection queue, defect rework tracking, transport truck registration logging, 
      and monthly PDF/CSV report exporter.
 ---------------------------------------------------------------------------------------------------
-SUBTOTAL SYSTEM VALUATION                                                             ₹ 38,000.00
-Partner / Preferred Client Discount                                                 - ₹ 26,000.00
+SUBTOTAL SYSTEM VALUATION                                                             ₹ 50,000.00
+Himesh Supabase Promo & Enterprise Developer Subsidy                                - ₹ 33,000.00
+Himesh Tokens Credit Applied                                                        - ₹  2,000.00
 ---------------------------------------------------------------------------------------------------
-TOTAL PAYABLE AMOUNT DUE                                                              ₹ 12,000.00
+TOTAL PAYABLE AMOUNT DUE                                                              ₹ 15,000.00
 ===================================================================================================
 
 BANK & PAYMENT DETAILS:
@@ -155,4 +156,5 @@ This document certifies that the **Ashapuri Tuff Factory Enterprise Portal** has
 **Client Signature (Ashapuri Tuff):** ___________________________   **Date:** _______________
 
 **Development Team Signature:** _______________________________   **Date:** _______________
+
 
