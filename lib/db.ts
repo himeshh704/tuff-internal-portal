@@ -198,8 +198,15 @@ class FactoryStore {
       return this.data.orders;
     }
 
+    const deleted = new Set((this.data as any).deletedOrderIds || []);
+    serverOrders = serverOrders.filter((so) => !deleted.has(so.id) && !deleted.has(so.order_number));
+
     const mergedMap = new Map<string, Order>();
-    this.data.orders.forEach((o) => mergedMap.set(o.id, o));
+    this.data.orders.forEach((o) => {
+      if (!deleted.has(o.id) && !deleted.has(o.order_number)) {
+        mergedMap.set(o.id, o);
+      }
+    });
 
     serverOrders.forEach((so) => {
       const existingKey = Array.from(mergedMap.keys()).find(
@@ -229,8 +236,18 @@ class FactoryStore {
       return this.data.workAssignments;
     }
 
+    const deletedAsgns = new Set((this.data as any).deletedAssignmentIds || []);
+    const deletedOrds = new Set((this.data as any).deletedOrderIds || []);
+    serverAssignments = serverAssignments.filter(
+      (sa) => !deletedAsgns.has(sa.id) && !deletedOrds.has(sa.order_id) && !deletedOrds.has(sa.order_number)
+    );
+
     const mergedMap = new Map<string, WorkAssignment>();
-    this.data.workAssignments.forEach((a) => mergedMap.set(a.id, a));
+    this.data.workAssignments.forEach((a) => {
+      if (!deletedAsgns.has(a.id) && !deletedOrds.has(a.order_id) && !deletedOrds.has(a.order_number)) {
+        mergedMap.set(a.id, a);
+      }
+    });
 
     const statusRank: Record<string, number> = {
       'In Progress': 1, 'Needs Checking': 2, 'Rework': 3, 'Approved': 4
@@ -270,6 +287,12 @@ class FactoryStore {
     const targetId = ord.id;
     const targetOrderNumber = ord.order_number;
 
+    if (!(this.data as any).deletedOrderIds) {
+      (this.data as any).deletedOrderIds = [];
+    }
+    (this.data as any).deletedOrderIds.push(targetId);
+    if (targetOrderNumber) (this.data as any).deletedOrderIds.push(targetOrderNumber);
+
     this.data.orders = this.data.orders.filter((o) => o.id !== targetId && o.order_number !== targetOrderNumber);
     this.data.workAssignments = this.data.workAssignments.filter(
       (a) => a.order_id !== targetId && a.order_number !== targetOrderNumber
@@ -298,6 +321,11 @@ class FactoryStore {
   deleteAssignment(assignmentId: string) {
     const asgn = this.data.workAssignments.find((a) => a.id === assignmentId);
     if (asgn) {
+      if (!(this.data as any).deletedAssignmentIds) {
+        (this.data as any).deletedAssignmentIds = [];
+      }
+      (this.data as any).deletedAssignmentIds.push(assignmentId);
+
       this.data.workAssignments = this.data.workAssignments.filter((a) => a.id !== assignmentId);
       this.save();
 
