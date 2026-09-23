@@ -3,16 +3,11 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Factory,
   Lock,
   Mail,
-  ShieldCheck,
-  UserCheck,
-  HardHat,
   AlertCircle,
   ArrowRight,
   Flame,
-  CheckCircle2,
 } from 'lucide-react';
 
 export default function LoginPage() {
@@ -22,7 +17,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'quick' | 'credentials'>('quick');
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,32 +41,6 @@ export default function LoginPage() {
       window.location.href = '/';
     } catch (err: any) {
       setErrorMsg('Failed to connect to authentication server.');
-      setLoading(false);
-    }
-  };
-
-  const handleQuickLogin = async (demoEmail: string, demoPass: string) => {
-    setErrorMsg('');
-    setLoading(true);
-
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: demoEmail, password: demoPass }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || !data.success) {
-        setErrorMsg(data.error || 'Quick login failed');
-        setLoading(false);
-        return;
-      }
-
-      window.location.href = '/';
-    } catch (err: any) {
-      setErrorMsg('Server connection error.');
       setLoading(false);
     }
   };
@@ -142,49 +110,14 @@ export default function LoginPage() {
             {/* Top Industrial Accent Line */}
             <div className="absolute top-0 left-0 right-0 h-2 bg-amber-600"></div>
 
-            {/* Header & Tab Selector */}
-            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-              <div>
-                <h2 className="text-xl font-black text-slate-900 tracking-tight">
-                  Factory Portal Login
-                </h2>
-                <p className="text-xs text-slate-500 font-medium mt-0.5">
-                  Select 1-tap role access or enter your login credentials.
-                </p>
-              </div>
-            </div>
-
-            {/* TAB SELECTOR */}
-            <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200 text-xs font-bold">
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveTab('quick');
-                  setErrorMsg('');
-                }}
-                className={`py-2 rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-                  activeTab === 'quick'
-                    ? 'bg-white text-slate-950 shadow-sm border border-slate-300 font-black'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <span>⚡ 1-Tap Quick Access</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveTab('credentials');
-                  setErrorMsg('');
-                }}
-                className={`py-2 rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-                  activeTab === 'credentials'
-                    ? 'bg-white text-slate-950 shadow-sm border border-slate-300 font-black'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <Lock className="w-3.5 h-3.5 text-amber-700" />
-                <span>Password Login</span>
-              </button>
+            {/* Header */}
+            <div className="border-b border-slate-200 pb-4">
+              <h2 className="text-xl font-black text-slate-900 tracking-tight">
+                Factory Portal Login
+              </h2>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
+                Enter your registered credentials to access your portal.
+              </p>
             </div>
 
             {/* ERROR BANNER */}
@@ -195,212 +128,61 @@ export default function LoginPage() {
               </div>
             )}
 
-            {/* TAB 1: QUICK ROLE LOGINS */}
-            {activeTab === 'quick' && (
-              <div className="space-y-3">
-                <span className="text-[11px] font-extrabold uppercase text-slate-500 tracking-wider block font-mono">
-                  Select Role to Sign In:
-                </span>
-
-                {/* OWNER 1: VIKASH */}
-                <button
-                  type="button"
-                  disabled={loading}
-                  onClick={() => handleQuickLogin('vikash@ashapurituff.com', 'admin123')}
-                  className="w-full p-3.5 rounded-2xl bg-amber-50 border-2 border-amber-300 hover:border-amber-500 hover:bg-amber-100/80 transition-all text-left flex items-center justify-between group active:scale-98 shadow-sm"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-amber-600 text-white flex items-center justify-center font-bold">
-                      <ShieldCheck className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-black text-sm text-amber-950">
-                          Vikash (Owner)
-                        </h3>
-                        <span className="text-[10px] font-mono font-black bg-amber-200 text-amber-900 px-2 py-0.5 rounded">
-                          ADMIN
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-amber-800 font-medium">
-                        Full Orders, Production, Customers, Reports & Management
-                      </p>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-amber-700 group-hover:translate-x-1 transition-transform" />
-                </button>
-
-                {/* OWNER 2: NAVEEN */}
-                <button
-                  type="button"
-                  disabled={loading}
-                  onClick={() => handleQuickLogin('naveen@ashapurituff.com', 'admin123')}
-                  className="w-full p-3.5 rounded-2xl bg-amber-50 border-2 border-amber-300 hover:border-amber-500 hover:bg-amber-100/80 transition-all text-left flex items-center justify-between group active:scale-98 shadow-sm"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-amber-600 text-white flex items-center justify-center font-bold">
-                      <ShieldCheck className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-black text-sm text-amber-950">
-                          Naveen (Owner)
-                        </h3>
-                        <span className="text-[10px] font-mono font-black bg-amber-200 text-amber-900 px-2 py-0.5 rounded">
-                          ADMIN
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-amber-800 font-medium">
-                        Full Orders, Production, Customers, Reports & Management
-                      </p>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-amber-700 group-hover:translate-x-1 transition-transform" />
-                </button>
-
-                {/* SUPERVISOR 1 */}
-                <button
-                  type="button"
-                  disabled={loading}
-                  onClick={() => handleQuickLogin('supervisor1@ashapurituff.com', 'super123')}
-                  className="w-full p-3.5 rounded-2xl bg-blue-50 border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-100/80 transition-all text-left flex items-center justify-between group active:scale-98 shadow-sm"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-blue-700 text-white flex items-center justify-center font-bold">
-                      <UserCheck className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-black text-sm text-blue-950">
-                          Supervisor 1
-                        </h3>
-                        <span className="text-[10px] font-mono font-black bg-blue-200 text-blue-900 px-2 py-0.5 rounded">
-                          SHIFT A
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-blue-800 font-medium">
-                        Send Shop Floor Progress Feedback & Manage Production
-                      </p>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-blue-700 group-hover:translate-x-1 transition-transform" />
-                </button>
-
-                {/* SUPERVISOR 2 */}
-                <button
-                  type="button"
-                  disabled={loading}
-                  onClick={() => handleQuickLogin('supervisor2@ashapurituff.com', 'super123')}
-                  className="w-full p-3.5 rounded-2xl bg-blue-50 border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-100/80 transition-all text-left flex items-center justify-between group active:scale-98 shadow-sm"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-blue-700 text-white flex items-center justify-center font-bold">
-                      <UserCheck className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-black text-sm text-blue-950">
-                          Supervisor 2
-                        </h3>
-                        <span className="text-[10px] font-mono font-black bg-blue-200 text-blue-900 px-2 py-0.5 rounded">
-                          SHIFT B
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-blue-800 font-medium">
-                        Send Shop Floor Progress Feedback & Manage Production
-                      </p>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-blue-700 group-hover:translate-x-1 transition-transform" />
-                </button>
-
-                {/* SUPERVISOR 3 */}
-                <button
-                  type="button"
-                  disabled={loading}
-                  onClick={() => handleQuickLogin('supervisor3@ashapurituff.com', 'super123')}
-                  className="w-full p-3.5 rounded-2xl bg-blue-50 border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-100/80 transition-all text-left flex items-center justify-between group active:scale-98 shadow-sm"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-blue-700 text-white flex items-center justify-center font-bold">
-                      <UserCheck className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-black text-sm text-blue-950">
-                          Supervisor 3
-                        </h3>
-                        <span className="text-[10px] font-mono font-black bg-blue-200 text-blue-900 px-2 py-0.5 rounded">
-                          SHIFT C
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-blue-800 font-medium">
-                        Send Shop Floor Progress Feedback & Manage Production
-                      </p>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-blue-700 group-hover:translate-x-1 transition-transform" />
-                </button>
+            {/* CREDENTIAL FORM */}
+            <form onSubmit={handleLoginSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
+                  Email / Username
+                </label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                  <input
+                    type="text"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="vikash@ashapurituff.com or supervisor1"
+                    className="w-full pl-10 pr-4 py-3 text-xs font-mono font-semibold rounded-xl bg-slate-50 border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/20"
+                  />
+                </div>
               </div>
-            )}
 
-            {/* TAB 2: CREDENTIAL FORM */}
-            {activeTab === 'credentials' && (
-              <form onSubmit={handleLoginSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
-                    Email Address
-                  </label>
-                  <div className="relative">
-                    <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="owner@ashapurituff.com"
-                      className="w-full pl-10 pr-4 py-3 text-xs font-mono font-semibold rounded-xl bg-slate-50 border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/20"
-                    />
-                  </div>
+              <div>
+                <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
+                  Password
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full pl-10 pr-4 py-3 text-xs font-mono font-bold rounded-xl bg-slate-50 border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/20"
+                  />
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-                    <input
-                      type="password"
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="w-full pl-10 pr-4 py-3 text-xs font-mono font-bold rounded-xl bg-slate-50 border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/20"
-                    />
-                  </div>
-                </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 bg-amber-600 hover:bg-amber-700 active:scale-98 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <span>Authenticating Credentials...</span>
+                ) : (
+                  <>
+                    <span>Sign In to Factory System</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </form>
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-3.5 bg-amber-600 hover:bg-amber-700 active:scale-98 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
-                >
-                  {loading ? (
-                    <span>Authenticating Credentials...</span>
-                  ) : (
-                    <>
-                      <span>Sign In to Factory System</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
-              </form>
-            )}
-
-            {/* Footer Credentials Reminder */}
-            <div className="pt-2 border-t border-slate-200 text-center text-[11px] font-mono text-slate-500">
-              Owners: <strong className="text-slate-800">vikash@ashapurituff.com / naveen@ashapurituff.com</strong> (Pass: <strong className="text-slate-800">admin123</strong>) | Supervisors: <strong className="text-slate-800">supervisor1 / supervisor2 / supervisor3</strong> (Pass: <strong className="text-slate-800">super123</strong>)
+            {/* System Info */}
+            <div className="pt-3 border-t border-slate-200 text-center text-[11px] font-mono text-slate-500">
+              Ashapuri Tuff Industrial Portal • Morvi Glass Hub
             </div>
           </div>
         </div>
@@ -408,3 +190,4 @@ export default function LoginPage() {
     </div>
   );
 }
+
