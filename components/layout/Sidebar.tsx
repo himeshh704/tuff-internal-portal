@@ -44,7 +44,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onTabChange,
   counts,
 }) => {
-  const isWorker = userRole === 'worker';
+  const isOwner = userRole === 'owner';
 
   return (
     <aside className="w-64 bg-surface-container-lowest border-r border-outline-variant/40 flex flex-col justify-between p-3 select-none shrink-0 min-h-[calc(100vh-65px)]">
@@ -52,13 +52,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Navigation Section Title */}
         <div className="px-3 pt-1">
           <span className="text-[10px] font-extrabold tracking-wider text-secondary uppercase block">
-            {isWorker ? 'Worker Terminal' : 'Factory Management'}
+            {isOwner ? 'Factory Management' : 'Shift Supervisor Terminal'}
           </span>
         </div>
 
         {/* Primary Navigation */}
         <nav className="space-y-1">
-          {!isWorker ? (
+          {isOwner ? (
             <>
               {/* Dashboard */}
               <button

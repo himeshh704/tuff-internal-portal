@@ -50,7 +50,7 @@ export default function Home() {
         const data = await res.json();
         if (data.authenticated && data.user) {
           setCurrentUser(data.user);
-          if (data.user.role === 'worker') {
+          if (data.user.role !== 'owner') {
             setActiveTab('worker-my-work');
           }
         } else {
@@ -205,7 +205,7 @@ export default function Home() {
 
         {/* Main Workspace View */}
         <main className="flex-1 p-3 md:p-6 overflow-y-auto max-w-7xl mx-auto w-full">
-          {activeTab === 'dashboard' && currentUser.role !== 'worker' && (
+          {activeTab === 'dashboard' && currentUser.role === 'owner' && (
             <DashboardView
               orders={orders}
               logs={logs}
@@ -216,7 +216,7 @@ export default function Home() {
             />
           )}
 
-          {activeTab === 'orders' && currentUser.role !== 'worker' && (
+          {activeTab === 'orders' && currentUser.role === 'owner' && (
             <OrdersView
               orders={orders}
               workers={supervisors}
@@ -242,7 +242,7 @@ export default function Home() {
             />
           )}
 
-          {activeTab === 'production' && currentUser.role !== 'worker' && (
+          {activeTab === 'production' && currentUser.role === 'owner' && (
             <ProductionView
               orders={orders}
               workers={supervisors}
@@ -251,11 +251,11 @@ export default function Home() {
             />
           )}
 
-          {activeTab === 'dispatch' && currentUser.role !== 'worker' && (
+          {activeTab === 'dispatch' && currentUser.role === 'owner' && (
             <DispatchView orders={orders} onRefresh={refreshData} />
           )}
 
-          {activeTab === 'customers' && currentUser.role !== 'worker' && (
+          {activeTab === 'customers' && currentUser.role === 'owner' && (
             <CustomersView
               customers={db.getCustomers()}
               orders={orders}
@@ -264,11 +264,11 @@ export default function Home() {
             />
           )}
 
-          {activeTab === 'reports' && currentUser.role !== 'worker' && (
+          {activeTab === 'reports' && currentUser.role === 'owner' && (
             <ReportsView orders={orders} />
           )}
 
-          {activeTab === 'settings' && currentUser.role !== 'worker' && <SettingsView />}
+          {activeTab === 'settings' && currentUser.role === 'owner' && <SettingsView />}
 
           {/* WORKER VIEWS (ROLE ENFORCED) */}
           {activeTab === 'worker-my-work' && (
