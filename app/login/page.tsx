@@ -56,7 +56,7 @@ export default function LoginPage() {
           {/* Status Badge */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-100 border border-amber-300 text-amber-900 text-xs font-bold font-mono">
             <Flame className="w-4 h-4 text-amber-600 animate-pulse" />
-            <span>Morbi-Rajkot Industrial Line 01 • Live</span>
+            <span>Sirohi Industrial Line 01 • Live</span>
           </div>
 
           <div className="space-y-3">
@@ -196,7 +196,7 @@ export default function LoginPage() {
 
             {/* System Info */}
             <div className="pt-3 border-t border-slate-200 text-center text-[11px] font-mono text-slate-500">
-              Ashapuri Tuff Industrial Portal • Morvi Glass Hub
+              Ashapuri Tuff Industrial Portal • Sirohi Glass Plant
             </div>
           </div>
         </div>

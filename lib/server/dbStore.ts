@@ -135,9 +135,23 @@ export const serverDb = {
     return loadDatabase().users;
   },
 
-  findUserByEmail: (email: string): UserAccount | undefined => {
+  findUserByEmail: (emailOrUsername: string): UserAccount | undefined => {
     const data = loadDatabase();
-    return data.users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+    const query = emailOrUsername.trim().toLowerCase();
+    
+    return data.users.find((u) => {
+      const uEmail = u.email.toLowerCase();
+      const uPrefix = uEmail.split('@')[0];
+      const uName = u.name.toLowerCase();
+      const uId = u.id.toLowerCase();
+
+      return (
+        uEmail === query ||
+        uPrefix === query ||
+        uName === query ||
+        uId === query
+      );
+    });
   },
 
   getOrders: (): Order[] => {

@@ -13,9 +13,12 @@ export async function POST(request: Request) {
       );
     }
 
-    const user = serverDb.findUserByEmail(email);
+    const cleanEmail = email.trim();
+    const cleanPassword = password.trim();
 
-    if (!user || user.passwordHash !== password) {
+    const user = serverDb.findUserByEmail(cleanEmail);
+
+    if (!user || user.passwordHash.trim() !== cleanPassword) {
       return NextResponse.json(
         { error: 'Invalid email or password. Please check your credentials.' },
         { status: 401 }

@@ -3,7 +3,7 @@
 
 **Tagline:** *STRENGTHENING YOUR GLASS*  
 **Client:** Ashapuri Tuff (Vikash & Naveen)  
-**Location:** Morbi-Rajkot Industrial Zone, Gujarat  
+**Location:** Industrial Area, Sirohi, Rajasthan  
 **GitHub Repository:** `https://github.com/himeshh704/tuff-internal-portal.git`  
 **Document Version:** 2.0 (Production Release)
 
@@ -107,7 +107,7 @@ flowchart TD
 ===================================================================================================
 Invoice Number : AT-INV-2026-001                                     Invoice Date : 23-SEP-2026
 Client Name    : Ashapuri Tuff (Vikash & Naveen)                    Payment Terms: Due Net 15
-Location       : Morbi-Rajkot Highway, Gujarat                       Currency     : INR (₹)
+Location       : Industrial Area, Sirohi, Rajasthan                Currency     : INR (₹)
 ===================================================================================================
 
 ITEM DESCRIPTION & TECHNICAL BREAKDOWN                                                 AMOUNT (INR)

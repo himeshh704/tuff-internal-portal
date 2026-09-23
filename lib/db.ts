@@ -66,7 +66,7 @@ export const DEFAULT_USERS: User[] = [
 export const DEFAULT_SETTINGS: FactorySettings = {
   factory_name: 'Ashapuri Tuff — Factory Portal',
   phone: '+91 98250 99999',
-  address: 'Plot 108, Industrial Zone 3, Morbi-Rajkot Highway, Gujarat',
+  address: 'Industrial Area, Sirohi, Rajasthan - 307001',
   current_shift: 'SHIFT A (08:00 - 16:00)',
   auto_order_prefix: 'AT-2026-',
 };
