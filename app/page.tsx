@@ -141,12 +141,33 @@ export default function Home() {
     if (currentUser) {
       refreshData();
 
-      // Silent background polling: 10-second check with zero UI flicker
+      // Silent background polling: 2-second check with zero UI flicker
       const interval = setInterval(() => {
         refreshData();
-      }, 10000);
+      }, 2000);
 
-      return () => clearInterval(interval);
+      const handleStorageChange = (e: StorageEvent) => {
+        if (e.key === 'ashapuri_last_sync_ts' || e.key === 'ma_ashapuri_tuff_factory_data_v1') {
+          refreshData();
+        }
+      };
+      window.addEventListener('storage', handleStorageChange);
+
+      let bChannel: BroadcastChannel | null = null;
+      if ('BroadcastChannel' in window) {
+        try {
+          bChannel = new BroadcastChannel('ashapuri_realtime_sync');
+          bChannel.onmessage = () => {
+            refreshData();
+          };
+        } catch (err) {}
+      }
+
+      return () => {
+        clearInterval(interval);
+        window.removeEventListener('storage', handleStorageChange);
+        if (bChannel) bChannel.close();
+      };
     }
   }, [currentUser]);
 

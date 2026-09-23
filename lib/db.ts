@@ -71,10 +71,17 @@ const CLEAN_DATA = {
 // Data Management Engine
 class FactoryStore {
   private data: typeof CLEAN_DATA;
+  private channel: BroadcastChannel | null = null;
 
   constructor() {
     this.data = CLEAN_DATA;
     if (typeof window !== 'undefined') {
+      if ('BroadcastChannel' in window) {
+        try {
+          this.channel = new BroadcastChannel('ashapuri_realtime_sync');
+        } catch (e) {}
+      }
+
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         try {
@@ -101,6 +108,12 @@ class FactoryStore {
   private save() {
     if (typeof window !== 'undefined') {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.data));
+      localStorage.setItem('ashapuri_last_sync_ts', Date.now().toString());
+      if (this.channel) {
+        try {
+          this.channel.postMessage({ type: 'SYNC_NOW', ts: Date.now() });
+        } catch (e) {}
+      }
     }
   }
 
