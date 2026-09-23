@@ -15,17 +15,17 @@ export async function DELETE(
 
   if (session.role === 'worker') {
     return NextResponse.json(
-      { error: 'Access Denied: Workers cannot delete orders' },
+      { error: 'Access Denied: Workers cannot delete assignments' },
       { status: 403 }
     );
   }
 
   try {
-    serverDb.deleteOrder(params.id);
+    serverDb.deleteAssignment(params.id);
     return NextResponse.json({ success: true });
   } catch (err: any) {
     return NextResponse.json(
-      { error: err.message || 'Failed to delete order' },
+      { error: err.message || 'Failed to delete assignment' },
       { status: 500 }
     );
   }

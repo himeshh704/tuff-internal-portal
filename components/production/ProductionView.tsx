@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Order, User, WorkAssignment } from '@/lib/types';
 import { db } from '@/lib/db';
-import { Factory, UserCheck, Plus, CheckCircle2, Clock } from 'lucide-react';
+import { Factory, UserCheck, Plus, CheckCircle2, Clock, Trash2 } from 'lucide-react';
 
 interface ProductionViewProps {
   orders: Order[];
@@ -317,9 +317,24 @@ export const ProductionView: React.FC<ProductionViewProps> = ({
                       ></div>
                     </div>
 
-                    {/* SUPERVISOR ACTION BUTTON */}
-                    {asgn.status !== 'Approved' && (
-                      <div className="pt-1 flex items-center justify-end">
+                    {/* SUPERVISOR & OWNER ACTION BUTTONS */}
+                    <div className="pt-1 flex items-center justify-between gap-2">
+                      <button
+                        onClick={() => {
+                          if (confirm(`Delete assignment for ${asgn.item_name}?`)) {
+                            db.deleteAssignment(asgn.id);
+                            fetch(`/api/orders/assign/${asgn.id}`, { method: 'DELETE' }).catch(() => {});
+                            onRefresh();
+                          }
+                        }}
+                        className="px-2.5 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 font-extrabold text-xs rounded-lg transition-all flex items-center gap-1 active:scale-95"
+                        title="Delete Assignment"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Delete</span>
+                      </button>
+
+                      {asgn.status !== 'Approved' && (
                         <button
                           onClick={() => {
                             setFeedbackAssignment(asgn);
@@ -331,8 +346,8 @@ export const ProductionView: React.FC<ProductionViewProps> = ({
                           <Factory className="w-3.5 h-3.5" />
                           <span>⚡ Send Floor Progress Feedback</span>
                         </button>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 );
               })

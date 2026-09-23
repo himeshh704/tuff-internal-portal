@@ -157,9 +157,56 @@ class FactoryStore {
     return newCust;
   }
 
+  deleteCustomer(customerId: string) {
+    this.data.customers = this.data.customers.filter((c) => c.id !== customerId);
+    this.save();
+  }
+
   // ORDERS
   getOrders(): Order[] {
     return this.data.orders;
+  }
+
+  mergeOrders(serverOrders: Order[]): Order[] {
+    if (!serverOrders || serverOrders.length === 0) {
+      return this.data.orders;
+    }
+
+    const mergedMap = new Map<string, Order>();
+    this.data.orders.forEach((o) => mergedMap.set(o.id, o));
+
+    serverOrders.forEach((so) => {
+      const existingKey = Array.from(mergedMap.keys()).find(
+        (k) => k === so.id || mergedMap.get(k)?.order_number === so.order_number
+      );
+      if (existingKey) {
+        const existing = mergedMap.get(existingKey)!;
+        mergedMap.set(existingKey, { ...existing, ...so });
+      } else {
+        mergedMap.set(so.id, so);
+      }
+    });
+
+    this.data.orders = Array.from(mergedMap.values());
+    this.save();
+    return this.data.orders;
+  }
+
+  mergeAssignments(serverAssignments: WorkAssignment[]): WorkAssignment[] {
+    if (!serverAssignments || serverAssignments.length === 0) {
+      return this.data.workAssignments;
+    }
+
+    const mergedMap = new Map<string, WorkAssignment>();
+    this.data.workAssignments.forEach((a) => mergedMap.set(a.id, a));
+
+    serverAssignments.forEach((sa) => {
+      mergedMap.set(sa.id, sa);
+    });
+
+    this.data.workAssignments = Array.from(mergedMap.values());
+    this.save();
+    return this.data.workAssignments;
   }
 
   getOrderById(id: string): Order | undefined {

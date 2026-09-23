@@ -68,36 +68,57 @@ export default function Home() {
 
   const refreshData = async () => {
     try {
-      if (currentUser?.role === 'worker') {
-        const res = await fetch('/api/worker/my-work');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.assignments) {
-            setAssignments((prev) =>
-              JSON.stringify(prev) === JSON.stringify(data.assignments) ? prev : data.assignments
-            );
+      // 1. Fetch main server orders & assignments
+      const res = await fetch('/api/orders');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.orders && Array.isArray(data.orders)) {
+          db.mergeOrders(data.orders);
+        }
+        if (data.assignments && Array.isArray(data.assignments)) {
+          db.mergeAssignments(data.assignments);
+        }
+        if (data.logs && Array.isArray(data.logs)) {
+          setLogs((prev) =>
+            JSON.stringify(prev) === JSON.stringify(data.logs) ? prev : data.logs
+          );
+        }
+      }
+
+      // 2. Fetch specific worker/supervisor assignments if non-owner
+      if (currentUser?.role !== 'owner') {
+        const workerRes = await fetch('/api/worker/my-work');
+        if (workerRes.ok) {
+          const workerData = await workerRes.json();
+          if (workerData.assignments && Array.isArray(workerData.assignments)) {
+            db.mergeAssignments(workerData.assignments);
           }
         }
-      } else {
-        const res = await fetch('/api/orders');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.orders) {
-            setOrders((prev) =>
-              JSON.stringify(prev) === JSON.stringify(data.orders) ? prev : data.orders
-            );
-          }
-          if (data.assignments) {
-            setAssignments((prev) =>
-              JSON.stringify(prev) === JSON.stringify(data.assignments) ? prev : data.assignments
-            );
-          }
-          if (data.logs) {
-            setLogs((prev) =>
-              JSON.stringify(prev) === JSON.stringify(data.logs) ? prev : data.logs
-            );
-          }
-        }
+      }
+
+      const allOrders = db.getOrders();
+      const allAssignments = db.getAssignments();
+      const allLogs = db.getLogs();
+
+      setOrders((prev) =>
+        JSON.stringify(prev) === JSON.stringify(allOrders) ? prev : allOrders
+      );
+      setAssignments((prev) =>
+        JSON.stringify(prev) === JSON.stringify(allAssignments) ? prev : allAssignments
+      );
+      setLogs((prev) =>
+        JSON.stringify(prev) === JSON.stringify(allLogs) ? prev : allLogs
+      );
+
+      // 3. Auto-heal: Sync local orders to server if server lambda restarted
+      if (allOrders.length > 0 && currentUser?.role === 'owner') {
+        allOrders.forEach((ord) => {
+          fetch('/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(ord),
+          }).catch(() => {});
+        });
       }
     } catch (err) {
       const localOrders = db.getOrders();

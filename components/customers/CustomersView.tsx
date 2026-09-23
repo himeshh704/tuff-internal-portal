@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Customer, Order } from '@/lib/types';
 import { db } from '@/lib/db';
-import { Users, UserPlus, Phone, MapPin, Search, Package, Plus, X, MessageSquare } from 'lucide-react';
+import { Users, UserPlus, Phone, MapPin, Search, Package, Plus, X, MessageSquare, Trash2 } from 'lucide-react';
 import { formatPhoneForWhatsApp, openWhatsApp } from '@/lib/whatsapp';
 
 interface CustomersViewProps {
@@ -138,7 +138,22 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
                   className="flex-1 py-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1.5"
                 >
                   <Package className="w-3.5 h-3.5 text-primary" />
-                  <span>Order History ({custOrders.length})</span>
+                  <span>Orders ({custOrders.length})</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    if (confirm(`Delete customer "${cust.name}"?`)) {
+                      db.deleteCustomer(cust.id);
+                      fetch(`/api/customers/${cust.id}`, { method: 'DELETE' }).catch(() => {});
+                      onRefresh();
+                    }
+                  }}
+                  className="px-2 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 font-bold text-xs rounded-lg transition-all flex items-center gap-1"
+                  title="Delete Customer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete</span>
                 </button>
               </div>
             </div>
