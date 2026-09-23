@@ -211,8 +211,21 @@ export const serverDb = {
       order.status = 'In Production';
     }
 
+    // Check if matching assignment already exists to prevent duplicates
+    let existingAsgn = dbData.workAssignments.find(
+      (a) => (a.order_id === order.id || a.order_number === order.order_number) &&
+             a.order_item_id === item.id &&
+             a.worker_id === worker.id
+    );
+
+    if (existingAsgn) {
+      existingAsgn.required_qty = requiredQty;
+      saveDatabase(dbData);
+      return existingAsgn;
+    }
+
     const assignment: WorkAssignment = {
-      id: `assign-${Date.now()}`,
+      id: orderDataFallback?.id || `assign-${Date.now()}`,
       order_id: order.id,
       order_number: order.order_number,
       customer_name: order.customer_name,

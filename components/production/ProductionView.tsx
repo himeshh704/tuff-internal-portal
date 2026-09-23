@@ -43,7 +43,7 @@ export const ProductionView: React.FC<ProductionViewProps> = ({
     }
 
     try {
-      db.assignWork(selectedOrderId, selectedItemId, selectedWorkerId, assignQty);
+      const createdAsgn = db.assignWork(selectedOrderId, selectedItemId, selectedWorkerId, assignQty);
 
       // Sync to server database API with full orderData fallback
       fetch('/api/orders/assign', {
@@ -54,7 +54,7 @@ export const ProductionView: React.FC<ProductionViewProps> = ({
           itemId: selectedItemId,
           workerId: selectedWorkerId,
           requiredQty: assignQty,
-          orderData: selectedOrder,
+          orderData: { ...selectedOrder, id: createdAsgn.id },
         }),
       }).catch((err) => console.error('Assignment server sync error:', err));
 

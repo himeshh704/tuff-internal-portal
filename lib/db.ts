@@ -183,6 +183,9 @@ class FactoryStore {
   deleteCustomer(customerId: string) {
     this.data.customers = this.data.customers.filter((c) => c.id !== customerId);
     this.save();
+    if (typeof window !== 'undefined') {
+      fetch(`/api/customers/${customerId}`, { method: 'DELETE' }).catch(console.error);
+    }
   }
 
   // ORDERS
@@ -204,7 +207,6 @@ class FactoryStore {
       );
       if (existingKey) {
         const existing = mergedMap.get(existingKey)!;
-        // Keep status if existing is further along
         const statusRank: Record<string, number> = {
           'New': 1, 'In Production': 2, 'Needs Checking': 3, 'Rework': 4, 'Ready': 5, 'Completed': 6
         };
@@ -264,19 +266,33 @@ class FactoryStore {
   deleteOrder(orderId: string, userName?: string) {
     const ord = this.getOrderById(orderId);
     if (!ord) return;
-    this.data.orders = this.data.orders.filter((o) => o.id !== orderId && o.order_number !== orderId);
+
+    const targetId = ord.id;
+    const targetOrderNumber = ord.order_number;
+
+    this.data.orders = this.data.orders.filter((o) => o.id !== targetId && o.order_number !== targetOrderNumber);
     this.data.workAssignments = this.data.workAssignments.filter(
-      (a) => a.order_id !== ord.id && a.order_number !== ord.order_number
+      (a) => a.order_id !== targetId && a.order_number !== targetOrderNumber
     );
+
     this.logActivity({
-      order_id: ord.id,
-      order_number: ord.order_number,
+      order_id: targetId,
+      order_number: targetOrderNumber,
       user_name: userName || 'Vikash',
       user_role: 'owner',
       action: 'Order Deleted',
-      details: `Deleted order ${ord.order_number} and all associated production tasks`,
+      details: `Deleted order ${targetOrderNumber} and all associated production tasks`,
     });
     this.save();
+
+    if (typeof window !== 'undefined') {
+      fetch(`/api/orders/${targetId}`, { method: 'DELETE' }).catch(console.error);
+      fetch('/api/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deletedOrderIds: [targetId] }),
+      }).catch(console.error);
+    }
   }
 
   deleteAssignment(assignmentId: string) {
@@ -284,6 +300,15 @@ class FactoryStore {
     if (asgn) {
       this.data.workAssignments = this.data.workAssignments.filter((a) => a.id !== assignmentId);
       this.save();
+
+      if (typeof window !== 'undefined') {
+        fetch(`/api/orders/assign/${assignmentId}`, { method: 'DELETE' }).catch(console.error);
+        fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ deletedAssignmentIds: [assignmentId] }),
+        }).catch(console.error);
+      }
     }
   }
 
