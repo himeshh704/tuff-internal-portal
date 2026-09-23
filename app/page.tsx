@@ -67,32 +67,52 @@ export default function Home() {
   }, [router]);
 
   const refreshData = async () => {
-    // 1. Instantly render from local cache
-    setOrders([...db.getOrders()]);
-    setAssignments([...db.getAssignments()]);
-    setLogs([...db.getLogs()]);
-
-    // 2. Fetch fresh real-time data from backend server API for cross-device synchronization
     try {
       if (currentUser?.role === 'worker') {
         const res = await fetch('/api/worker/my-work');
         if (res.ok) {
           const data = await res.json();
           if (data.assignments) {
-            setAssignments(data.assignments);
+            setAssignments((prev) =>
+              JSON.stringify(prev) === JSON.stringify(data.assignments) ? prev : data.assignments
+            );
           }
         }
       } else {
         const res = await fetch('/api/orders');
         if (res.ok) {
           const data = await res.json();
-          if (data.orders) setOrders(data.orders);
-          if (data.assignments) setAssignments(data.assignments);
-          if (data.logs) setLogs(data.logs);
+          if (data.orders) {
+            setOrders((prev) =>
+              JSON.stringify(prev) === JSON.stringify(data.orders) ? prev : data.orders
+            );
+          }
+          if (data.assignments) {
+            setAssignments((prev) =>
+              JSON.stringify(prev) === JSON.stringify(data.assignments) ? prev : data.assignments
+            );
+          }
+          if (data.logs) {
+            setLogs((prev) =>
+              JSON.stringify(prev) === JSON.stringify(data.logs) ? prev : data.logs
+            );
+          }
         }
       }
     } catch (err) {
-      // Fallback to local store on network error
+      const localOrders = db.getOrders();
+      const localAssignments = db.getAssignments();
+      const localLogs = db.getLogs();
+
+      setOrders((prev) =>
+        JSON.stringify(prev) === JSON.stringify(localOrders) ? prev : localOrders
+      );
+      setAssignments((prev) =>
+        JSON.stringify(prev) === JSON.stringify(localAssignments) ? prev : localAssignments
+      );
+      setLogs((prev) =>
+        JSON.stringify(prev) === JSON.stringify(localLogs) ? prev : localLogs
+      );
     }
   };
 
@@ -100,10 +120,10 @@ export default function Home() {
     if (currentUser) {
       refreshData();
 
-      // REAL-TIME CROSS-DEVICE POLLING: Refresh state every 5 seconds across all devices
+      // Silent background polling: 10-second check with zero UI flicker
       const interval = setInterval(() => {
         refreshData();
-      }, 5000);
+      }, 10000);
 
       return () => clearInterval(interval);
     }
