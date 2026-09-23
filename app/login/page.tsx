@@ -60,9 +60,9 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-3">
-            <div className="bg-white p-3 rounded-2xl border-2 border-slate-200 shadow-md inline-block max-w-sm">
+            <div className="bg-white p-3 rounded-2xl border-2 border-slate-200 shadow-md inline-block max-w-md w-full">
               <img
-                src="/logo.jpg"
+                src="/logo.jpg?v=2"
                 alt="Ashapuri Tuff — Strengthening Your Glass"
                 className="w-full h-auto object-contain rounded-xl"
               />
@@ -110,14 +110,28 @@ export default function LoginPage() {
             {/* Top Industrial Accent Line */}
             <div className="absolute top-0 left-0 right-0 h-2 bg-amber-600"></div>
 
-            {/* Header */}
-            <div className="border-b border-slate-200 pb-4">
-              <h2 className="text-xl font-black text-slate-900 tracking-tight">
-                Factory Portal Login
-              </h2>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">
-                Enter your registered credentials to access your portal.
-              </p>
+            {/* Header with Logo */}
+            <div className="border-b border-slate-200 pb-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 inline-block max-w-[200px]">
+                  <img
+                    src="/logo.jpg?v=2"
+                    alt="Ashapuri Tuff Logo"
+                    className="w-full h-auto object-contain rounded-lg"
+                  />
+                </div>
+                <span className="text-[10px] font-mono font-black bg-amber-100 text-amber-900 border border-amber-300 px-2 py-1 rounded-full">
+                  OFFICIAL PORTAL
+                </span>
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-slate-900 tracking-tight">
+                  Factory Portal Login
+                </h2>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  Enter your registered credentials to access your portal.
+                </p>
+              </div>
             </div>
 
             {/* ERROR BANNER */}

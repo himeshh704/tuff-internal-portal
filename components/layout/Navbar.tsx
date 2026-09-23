@@ -55,7 +55,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         <div className="h-10 md:h-11 px-2 py-1 rounded-xl bg-white border border-slate-200 flex items-center shadow-sm overflow-hidden">
           <img
-            src="/logo.jpg"
+            src="/logo.jpg?v=2"
             alt="Ashapuri Tuff Logo"
             className="h-full w-auto object-contain"
           />
