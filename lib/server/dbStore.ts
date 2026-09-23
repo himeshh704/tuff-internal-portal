@@ -18,7 +18,14 @@ export interface UserAccount extends User {
   passwordHash: string;
 }
 
-const DB_FILE_PATH = path.join(process.cwd(), 'factory_server_db.json');
+const getDbFilePath = () => {
+  if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+    return path.join('/tmp', 'factory_server_db.json');
+  }
+  return path.join(process.cwd(), 'factory_server_db.json');
+};
+
+const DB_FILE_PATH = getDbFilePath();
 
 export const INITIAL_USER_ACCOUNTS: UserAccount[] = [
   {
