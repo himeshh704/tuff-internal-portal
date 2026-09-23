@@ -158,7 +158,7 @@ export default function Home() {
     (a) => a.worker_id === currentUser.id && a.status !== 'Approved'
   ).length;
 
-  const workers = db.getUsers().filter((u) => u.role === 'worker');
+  const supervisors = db.getUsers().filter((u) => u.role === 'supervisor');
 
   return (
     <div className="min-h-screen bg-background flex flex-col font-sans">
@@ -219,7 +219,7 @@ export default function Home() {
           {activeTab === 'orders' && currentUser.role !== 'worker' && (
             <OrdersView
               orders={orders}
-              workers={workers}
+              workers={supervisors}
               searchQuery={searchQuery}
               userRole={currentUser.role}
               onSelectOrder={(ord) => setSelectedOrder(ord)}
@@ -245,7 +245,7 @@ export default function Home() {
           {activeTab === 'production' && currentUser.role !== 'worker' && (
             <ProductionView
               orders={orders}
-              workers={workers}
+              workers={supervisors}
               assignments={assignments}
               onRefresh={refreshData}
             />

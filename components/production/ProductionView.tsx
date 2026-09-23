@@ -183,20 +183,20 @@ export const ProductionView: React.FC<ProductionViewProps> = ({
               </div>
             )}
 
-            {/* SELECT WORKER */}
+            {/* SELECT SHIFT SUPERVISOR */}
             <div>
               <label className="block font-bold text-secondary mb-1">
-                Select Production Line / Worker *
+                Select Shift Supervisor *
               </label>
               <select
                 value={selectedWorkerId}
                 onChange={(e) => setSelectedWorkerId(e.target.value)}
                 className="w-full px-3 py-2 text-xs font-bold rounded-lg bg-surface-container-low border border-outline-variant/60 text-on-surface"
               >
-                <option value="">-- Choose Worker --</option>
+                <option value="">-- Choose Shift Supervisor --</option>
                 {workers.map((w) => (
                   <option key={w.id} value={w.id}>
-                    {w.name} ({w.line_assigned || 'Floor Worker'})
+                    {w.name} ({w.line_assigned || 'Shift Supervisor'})
                   </option>
                 ))}
               </select>

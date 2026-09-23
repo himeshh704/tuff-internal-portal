@@ -73,24 +73,6 @@ export const INITIAL_USER_ACCOUNTS: UserAccount[] = [
     phone: '+91 98250 00005',
     line_assigned: 'Shift C • Polishing & Edging',
   },
-  {
-    id: 'user-6',
-    name: 'Rahul Sharma',
-    role: 'worker',
-    email: 'rahul@ashapurituff.com',
-    passwordHash: '',
-    phone: '+91 98250 00006',
-    line_assigned: 'Cutting Line 1',
-  },
-  {
-    id: 'user-7',
-    name: 'Suresh Kumar',
-    role: 'worker',
-    email: 'suresh@ashapurituff.com',
-    passwordHash: '',
-    phone: '+91 98250 00007',
-    line_assigned: 'Tempering Line',
-  },
 ];
 
 export interface ServerDatabaseData {
