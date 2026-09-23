@@ -34,7 +34,10 @@ This enterprise application replaces paper job slips, phone calls, and manual re
 | **Shift Supervisor** | Supervisor 3 (Shift C) | `supervisor3@ashapurituff.com` or `supervisor3` | `super123` | Shop-floor management: Send progress feedback, log piece counts, enter supervisor notes, mark jobs completed. |
 
 > [!IMPORTANT]
-> **Floor Line Workers do NOT log into the system directly.** Supervisors manage and report all production output on their behalf to maintain maximum security and operational simplicity on the shop floor.
+> **Role Restrictions Summary**:
+> - **Owners (Vikash & Naveen)**: Have full control to create orders, delete orders, access customer lists, view monthly financial reports, and modify factory settings.
+> - **Supervisors (Supervisor 1, 2, 3)**: Dedicated strictly to shop-floor execution. Supervisors **cannot** create orders, delete orders, access customer records, view financial reports, or modify settings. Supervisors focus on line production, logging piece counts (`+1, +5, +10`), entering progress notes, and processing dispatches.
+> - **Floor Workers**: Do not log into the system directly. Shift Supervisors handle all shop-floor logging on their behalf.
 
 ---
 
