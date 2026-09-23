@@ -135,8 +135,9 @@ CREATE INDEX IF NOT EXISTS idx_assignments_worker ON public.work_assignments(wor
 
 -- 11. FACTORY SYSTEM ACCOUNTS ONLY (0 Sample Orders / 0 Sample Customers)
 INSERT INTO public.users (id, name, email, role, phone, line_assigned) VALUES
-  ('11111111-1111-4111-8111-111111111111', 'Rajesh Patel', 'owner@ashapurituff.com', 'owner', '+91 98250 00001', 'Factory Owner'),
-  ('22222222-2222-4222-8222-222222222222', 'Vikram Singh', 'supervisor@ashapurituff.com', 'supervisor', '+91 98250 00002', 'Shift A Supervisor'),
-  ('33333333-3333-4333-8333-333333333333', 'Rahul Sharma', 'rahul@ashapurituff.com', 'worker', '+91 98250 00003', 'Cutting Line 1'),
-  ('44444444-4444-4444-8444-444444444444', 'Suresh Kumar', 'suresh@ashapurituff.com', 'worker', '+91 98250 00004', 'Tempering Line')
+  ('11111111-1111-4111-8111-111111111111', 'Vikash', 'vikash@ashapurituff.com', 'owner', '+91 98250 00001', 'Factory Owner'),
+  ('22222222-2222-4222-8222-222222222222', 'Naveen', 'naveen@ashapurituff.com', 'owner', '+91 98250 00002', 'Factory Owner'),
+  ('33333333-3333-4333-8333-333333333333', 'Supervisor 1', 'supervisor1@ashapurituff.com', 'supervisor', '+91 98250 00003', 'Shift A • Production Floor'),
+  ('44444444-4444-4444-8444-444444444444', 'Supervisor 2', 'supervisor2@ashapurituff.com', 'supervisor', '+91 98250 00004', 'Shift B • Cutting & Tempering'),
+  ('55555555-5555-4555-8555-555555555555', 'Supervisor 3', 'supervisor3@ashapurituff.com', 'supervisor', '+91 98250 00005', 'Shift C • Polishing & Edging')
 ON CONFLICT (email) DO NOTHING;
