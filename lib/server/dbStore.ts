@@ -89,6 +89,8 @@ declare global {
   var __FACTORY_DB__: ServerDatabaseData | undefined;
 }
 
+import { supabaseServer, isSupabaseConfigured } from '../supabaseServer';
+
 function loadDatabase(): ServerDatabaseData {
   if (global.__FACTORY_DB__) {
     return global.__FACTORY_DB__;
@@ -126,6 +128,31 @@ function saveDatabase(data: ServerDatabaseData) {
     fs.writeFileSync(DB_FILE_PATH, JSON.stringify(data, null, 2), 'utf-8');
   } catch (err) {
     console.error('Error saving DB file', err);
+  }
+
+  // Asynchronously sync to Supabase if configured
+  if (supabaseServer && isSupabaseConfigured()) {
+    Promise.resolve().then(async () => {
+      try {
+        // Sync orders, customers, assignments to Supabase
+        for (const order of data.orders) {
+          await supabaseServer.from('orders').upsert({
+            id: order.id,
+            order_number: order.order_number,
+            customer_name: order.customer_name,
+            customer_phone: order.customer_phone,
+            order_date: order.order_date,
+            expected_delivery: order.expected_delivery,
+            priority: order.priority,
+            status: order.status,
+            notes: order.notes,
+            slip_url: order.slip_url,
+          }, { onConflict: 'order_number' });
+        }
+      } catch (e) {
+        console.error('Supabase async sync error:', e);
+      }
+    });
   }
 }
 
