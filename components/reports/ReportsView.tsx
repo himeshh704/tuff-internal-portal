@@ -15,12 +15,20 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ orders }) => {
     return o.order_date.startsWith(selectedMonth);
   });
 
+  const getItemCompletedQty = (item: any, orderStatus: string) => {
+    if (orderStatus === 'Completed' || orderStatus === 'Ready') {
+      return Math.max(item.completed_qty || 0, item.required_qty);
+    }
+    return item.completed_qty || 0;
+  };
+
   const totalRequired = filteredOrders.reduce(
     (acc, o) => acc + o.items.reduce((iAcc, item) => iAcc + item.required_qty, 0),
     0
   );
+
   const totalCompleted = filteredOrders.reduce(
-    (acc, o) => acc + o.items.reduce((iAcc, item) => iAcc + item.completed_qty, 0),
+    (acc, o) => acc + o.items.reduce((iAcc, item) => iAcc + getItemCompletedQty(item, o.status), 0),
     0
   );
 
@@ -31,7 +39,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ orders }) => {
       const itemsStr = o.items.map((i) => i.item_name).join('; ');
       const workersStr = o.items.map((i) => i.assigned_worker_name || 'Unassigned').join('; ');
       const req = o.items.reduce((acc, i) => acc + i.required_qty, 0);
-      const comp = o.items.reduce((acc, i) => acc + i.completed_qty, 0);
+      const comp = o.items.reduce((acc, i) => acc + getItemCompletedQty(i, o.status), 0);
 
       csv += `"${o.order_number}","${o.customer_name}","${o.order_date}","${o.expected_delivery}","${itemsStr}",${req},${comp},"${workersStr}","${o.status}","${o.dispatched_at || 'N/A'}"\n`;
     });
@@ -139,7 +147,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ orders }) => {
               ) : (
                 filteredOrders.map((ord) => {
                   const req = ord.items.reduce((acc, i) => acc + i.required_qty, 0);
-                  const comp = ord.items.reduce((acc, i) => acc + i.completed_qty, 0);
+                  const comp = ord.items.reduce((acc, i) => acc + getItemCompletedQty(i, ord.status), 0);
                   const workersStr = Array.from(
                     new Set(ord.items.map((i) => i.assigned_worker_name).filter(Boolean))
                   ).join(', ');
