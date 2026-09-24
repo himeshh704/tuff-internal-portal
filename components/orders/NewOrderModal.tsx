@@ -58,10 +58,10 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
     }[]
   >([
     {
-      item_name: '5mm Clear Toughened Glass',
-      dimensions: '914 × 1828 mm',
+      item_name: '',
+      dimensions: '',
       thickness: '5mm',
-      required_qty: 20,
+      required_qty: 1,
     },
   ]);
 
@@ -89,10 +89,10 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
     setItems([
       ...items,
       {
-        item_name: '8mm Clear Glass Panel',
-        dimensions: '1200 × 2400 mm',
-        thickness: '8mm',
-        required_qty: 10,
+        item_name: '',
+        dimensions: '',
+        thickness: '5mm',
+        required_qty: 1,
       },
     ]);
   };
@@ -387,12 +387,11 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
 
                     <div>
                       <label className="block text-[11px] font-bold text-secondary mb-1">
-                        Dimensions (W × H mm) *
+                        Dimensions (W × H mm) <span className="font-normal text-outline/70">(Optional)</span>
                       </label>
                       <input
                         type="text"
-                        required
-                        placeholder="914 × 1828 mm"
+                        placeholder="e.g. 914 × 1828 mm"
                         value={item.dimensions}
                         onChange={(e) => {
                           const updated = [...items];

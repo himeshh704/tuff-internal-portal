@@ -35,7 +35,7 @@ export const ProductionView: React.FC<ProductionViewProps> = ({
   const [feedbackNote, setFeedbackNote] = useState<string>('');
   const [submittingFeedback, setSubmittingFeedback] = useState<boolean>(false);
 
-  const handleCreateAssignment = (e: React.FormEvent) => {
+  const handleCreateAssignment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedOrderId || !selectedItemId || !selectedWorkerId) {
       alert('Please select an Order, Item, and Worker');
@@ -46,7 +46,7 @@ export const ProductionView: React.FC<ProductionViewProps> = ({
       const createdAsgn = db.assignWork(selectedOrderId, selectedItemId, selectedWorkerId, assignQty);
 
       // Sync to server database API with full orderData fallback
-      fetch('/api/orders/assign', {
+      await fetch('/api/orders/assign', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -56,7 +56,7 @@ export const ProductionView: React.FC<ProductionViewProps> = ({
           requiredQty: assignQty,
           orderData: { ...selectedOrder, id: createdAsgn.id },
         }),
-      }).catch((err) => console.error('Assignment server sync error:', err));
+      });
 
       alert('Work assignment created successfully!');
       setSelectedOrderId('');

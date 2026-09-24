@@ -40,7 +40,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ orders }) => {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `MA_Ashapuri_Tuff_Report_${selectedMonth}.csv`;
+    a.download = `Ashapuri_Tuff_Report_${selectedMonth}.csv`;
     a.click();
   };
 
@@ -96,7 +96,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ orders }) => {
         {/* Printable Header */}
         <div className="border-b border-outline-variant/40 pb-4 flex justify-between items-start">
           <div>
-            <h1 className="text-xl font-black text-on-surface">MA ASHAPURI TUFF</h1>
+            <h1 className="text-xl font-black text-on-surface">ASHAPURI TUFF</h1>
             <p className="text-xs font-bold text-secondary">
               Internal Factory Order & Production Report
             </p>

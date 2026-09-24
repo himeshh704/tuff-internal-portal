@@ -135,7 +135,7 @@ function saveDatabase(data: ServerDatabaseData) {
     const client = supabaseServer;
     Promise.resolve().then(async () => {
       try {
-        // Sync orders, customers, assignments to Supabase
+        // Sync orders to Supabase
         for (const order of data.orders) {
           await client.from('orders').upsert({
             id: order.id,
@@ -149,6 +149,25 @@ function saveDatabase(data: ServerDatabaseData) {
             notes: order.notes,
             slip_url: order.slip_url,
           }, { onConflict: 'order_number' });
+        }
+
+        // Sync work assignments to Supabase
+        for (const asgn of data.workAssignments) {
+          await client.from('work_assignments').upsert({
+            id: asgn.id,
+            order_id: asgn.order_id,
+            order_number: asgn.order_number,
+            customer_name: asgn.customer_name,
+            order_item_id: asgn.order_item_id,
+            item_name: asgn.item_name,
+            dimensions: asgn.dimensions || 'Standard',
+            worker_id: asgn.worker_id,
+            worker_name: asgn.worker_name,
+            required_qty: asgn.required_qty,
+            completed_qty: asgn.completed_qty || 0,
+            status: asgn.status,
+            assigned_at: asgn.assigned_at,
+          }, { onConflict: 'id' });
         }
       } catch (e) {
         console.error('Supabase async sync error:', e);
