@@ -132,11 +132,12 @@ function saveDatabase(data: ServerDatabaseData) {
 
   // Asynchronously sync to Supabase if configured
   if (supabaseServer && isSupabaseConfigured()) {
+    const client = supabaseServer;
     Promise.resolve().then(async () => {
       try {
         // Sync orders, customers, assignments to Supabase
         for (const order of data.orders) {
-          await supabaseServer.from('orders').upsert({
+          await client.from('orders').upsert({
             id: order.id,
             order_number: order.order_number,
             customer_name: order.customer_name,
