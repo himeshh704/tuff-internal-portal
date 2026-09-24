@@ -259,7 +259,8 @@ class FactoryStore {
         const finalQty = Math.max(existing.completed_qty || 0, sa.completed_qty || 0);
         const exRank = statusRank[existing.status] || 0;
         const saRank = statusRank[sa.status] || 0;
-        const finalStatus = saRank >= exRank ? sa.status : existing.status;
+        // If server says Approved, force Approved so supervisor terminal clears pending task instantly
+        const finalStatus = sa.status === 'Approved' ? 'Approved' : (saRank >= exRank ? sa.status : existing.status);
         mergedMap.set(sa.id, {
           ...existing,
           ...sa,

@@ -143,10 +143,10 @@ export default function Home() {
     if (currentUser) {
       refreshData();
 
-      // Silent background polling: 2-second check with zero UI flicker
+      // Bullet-fast background polling: 1-second check with zero UI flicker
       const interval = setInterval(() => {
         refreshData();
-      }, 2000);
+      }, 1000);
 
       const handleStorageChange = (e: StorageEvent) => {
         if (e.key === 'ashapuri_last_sync_ts' || e.key === 'ma_ashapuri_tuff_factory_data_v1') {
