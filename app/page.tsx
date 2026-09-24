@@ -143,7 +143,7 @@ export default function Home() {
     if (currentUser) {
       refreshData();
 
-      // Bullet-fast background polling: 1-second check with zero UI flicker
+      // Continuous background polling: 1-second sync for Render host (unlimited server capacity)
       const interval = setInterval(() => {
         refreshData();
       }, 1000);
