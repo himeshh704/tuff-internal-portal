@@ -15,7 +15,6 @@ const supabaseAnonKey =
 export function isSupabaseConfigured(): boolean {
   if (!supabaseUrl || !supabaseAnonKey) return false;
   if (supabaseUrl.includes('your-supabase-project-id')) return false;
-  if (supabaseUrl.includes('jzOJZhgiPpleeSITtSjERw')) return false;
   try {
     const url = new URL(supabaseUrl);
     return url.hostname.endsWith('.supabase.co') || url.hostname.endsWith('.supabase.in');
