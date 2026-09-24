@@ -213,13 +213,39 @@ export const serverDb = {
     const activeOrderIds = new Set(data.orders.map((o) => o.id));
     const activeOrderNumbers = new Set(data.orders.map((o) => o.order_number));
 
-    return data.workAssignments.filter(
-      (a) =>
-        (activeOrderIds.has(a.order_id) || activeOrderNumbers.has(a.order_number)) &&
-        (a.worker_id === workerId ||
-          (workerName && a.worker_name.toLowerCase().trim() === workerName.toLowerCase().trim())) &&
-        a.status !== 'Approved'
-    );
+    const targetName = (workerName || '').toLowerCase().trim();
+    const targetId = (workerId || '').toLowerCase().trim();
+
+    return data.workAssignments.filter((a) => {
+      // 1. Order Status Filter: Must belong to active non-deleted orders (if orders are loaded)
+      const isOrderActive =
+        activeOrderIds.size === 0 ||
+        activeOrderIds.has(a.order_id) ||
+        activeOrderNumbers.has(a.order_number);
+
+      if (!isOrderActive) return false;
+      if (a.status === 'Approved') return false;
+
+      // 2. Supervisor / Worker Matching
+      const asgnWorkerId = (a.worker_id || '').toLowerCase().trim();
+      const asgnWorkerName = (a.worker_name || '').toLowerCase().trim();
+
+      // Exact ID or Name match
+      if (asgnWorkerId === targetId) return true;
+      if (targetName && asgnWorkerName === targetName) return true;
+
+      // Flexible Supervisor matching (e.g., Supervisor 1, Supervisor 2, Supervisor 3)
+      if (targetName.includes('supervisor 1') && asgnWorkerName.includes('supervisor 1')) return true;
+      if (targetName.includes('supervisor 2') && asgnWorkerName.includes('supervisor 2')) return true;
+      if (targetName.includes('supervisor 3') && asgnWorkerName.includes('supervisor 3')) return true;
+
+      // User ID matching (user-3 = Supervisor 1, user-4 = Supervisor 2, user-5 = Supervisor 3)
+      if (targetId === 'user-3' && (asgnWorkerId === 'user-3' || asgnWorkerName.includes('1'))) return true;
+      if (targetId === 'user-4' && (asgnWorkerId === 'user-4' || asgnWorkerName.includes('2'))) return true;
+      if (targetId === 'user-5' && (asgnWorkerId === 'user-5' || asgnWorkerName.includes('3'))) return true;
+
+      return false;
+    });
   },
 
   assignWork: (

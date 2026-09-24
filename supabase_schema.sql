@@ -10,7 +10,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- 2. USERS TABLE
 CREATE TABLE IF NOT EXISTS public.users (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   email TEXT UNIQUE NOT NULL,
   role TEXT NOT NULL CHECK (role IN ('owner', 'supervisor', 'worker')),
@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS public.users (
 
 -- 3. CUSTOMERS TABLE
 CREATE TABLE IF NOT EXISTS public.customers (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   phone TEXT NOT NULL,
   address TEXT,
@@ -32,9 +32,9 @@ CREATE TABLE IF NOT EXISTS public.customers (
 
 -- 4. ORDERS TABLE
 CREATE TABLE IF NOT EXISTS public.orders (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id TEXT PRIMARY KEY,
   order_number TEXT UNIQUE NOT NULL,
-  customer_id UUID REFERENCES public.customers(id) ON DELETE SET NULL,
+  customer_id TEXT,
   customer_name TEXT NOT NULL,
   customer_phone TEXT NOT NULL,
   order_date DATE NOT NULL DEFAULT CURRENT_DATE,
@@ -52,29 +52,29 @@ CREATE TABLE IF NOT EXISTS public.orders (
 
 -- 5. ORDER ITEMS TABLE
 CREATE TABLE IF NOT EXISTS public.order_items (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  order_id UUID REFERENCES public.orders(id) ON DELETE CASCADE,
+  id TEXT PRIMARY KEY,
+  order_id TEXT,
   item_name TEXT NOT NULL,
-  dimensions TEXT NOT NULL,
+  dimensions TEXT,
   thickness TEXT DEFAULT '5mm',
   required_qty INT NOT NULL CHECK (required_qty > 0),
   completed_qty INT DEFAULT 0 CHECK (completed_qty >= 0),
   status TEXT DEFAULT 'New',
-  assigned_worker_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
+  assigned_worker_id TEXT,
   assigned_worker_name TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- 6. WORK ASSIGNMENTS TABLE
 CREATE TABLE IF NOT EXISTS public.work_assignments (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  order_id UUID REFERENCES public.orders(id) ON DELETE CASCADE,
+  id TEXT PRIMARY KEY,
+  order_id TEXT,
   order_number TEXT NOT NULL,
   customer_name TEXT NOT NULL,
-  order_item_id UUID REFERENCES public.order_items(id) ON DELETE CASCADE,
+  order_item_id TEXT,
   item_name TEXT NOT NULL,
-  dimensions TEXT NOT NULL,
-  worker_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
+  dimensions TEXT,
+  worker_id TEXT,
   worker_name TEXT NOT NULL,
   required_qty INT NOT NULL,
   completed_qty INT DEFAULT 0,
@@ -85,14 +85,14 @@ CREATE TABLE IF NOT EXISTS public.work_assignments (
 
 -- 7. REWORK TASKS TABLE
 CREATE TABLE IF NOT EXISTS public.rework_tasks (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  assignment_id UUID REFERENCES public.work_assignments(id) ON DELETE CASCADE,
-  order_id UUID REFERENCES public.orders(id) ON DELETE CASCADE,
+  id TEXT PRIMARY KEY,
+  assignment_id TEXT,
+  order_id TEXT,
   order_number TEXT NOT NULL,
-  order_item_id UUID REFERENCES public.order_items(id) ON DELETE CASCADE,
+  order_item_id TEXT,
   item_name TEXT NOT NULL,
   reason TEXT NOT NULL,
-  requested_by_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
+  requested_by_id TEXT,
   requested_by_name TEXT NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   resolved BOOLEAN DEFAULT FALSE
@@ -100,8 +100,8 @@ CREATE TABLE IF NOT EXISTS public.rework_tasks (
 
 -- 8. ACTIVITY LOGS TABLE
 CREATE TABLE IF NOT EXISTS public.activity_logs (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  order_id UUID REFERENCES public.orders(id) ON DELETE SET NULL,
+  id TEXT PRIMARY KEY,
+  order_id TEXT,
   order_number TEXT,
   user_name TEXT NOT NULL,
   user_role TEXT NOT NULL,
