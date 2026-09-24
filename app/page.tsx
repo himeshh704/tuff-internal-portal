@@ -298,6 +298,7 @@ export default function Home() {
           {activeTab === 'verification' && currentUser.role === 'owner' && (
             <VerificationView
               assignments={assignments}
+              orders={orders}
               currentUser={currentUser}
               onRefresh={refreshData}
             />

@@ -1,32 +1,67 @@
 'use client';
 
 import React, { useState } from 'react';
-import { WorkAssignment, User } from '@/lib/types';
+import { WorkAssignment, Order, User } from '@/lib/types';
 import { db } from '@/lib/db';
 import { CheckCircle2, RotateCcw, AlertTriangle, ShieldCheck, X } from 'lucide-react';
 
 interface VerificationViewProps {
   assignments: WorkAssignment[];
+  orders?: Order[];
   currentUser: User;
   onRefresh: () => void;
 }
 
 export const VerificationView: React.FC<VerificationViewProps> = ({
   assignments,
+  orders = [],
   currentUser,
   onRefresh,
 }) => {
   const [reworkAssignment, setReworkAssignment] = useState<WorkAssignment | null>(null);
   const [reworkReason, setReworkReason] = useState<string>('');
 
-  const checkingAssignments = assignments.filter(
-    (a) => a.status === 'Needs Checking'
-  );
+  // 1. Direct assignments with 'Needs Checking' status
+  const checkingAssignments = [...assignments.filter((a) => a.status === 'Needs Checking')];
+
+  // 2. Orders with 'Needs Checking' status that don't already have an assignment item listed
+  const existingOrderNumbers = new Set(checkingAssignments.map((a) => a.order_number));
+  orders.forEach((ord) => {
+    if (ord.status === 'Needs Checking' && !existingOrderNumbers.has(ord.order_number)) {
+      const itemDesc = ord.items && ord.items.length > 0 ? ord.items.map(i => i.item_name).join(', ') : 'Toughened Glass Items';
+      const itemDimensions = ord.items && ord.items.length > 0 ? ord.items[0].dimensions || 'Standard' : 'Standard';
+      const reqQty = ord.items && ord.items.length > 0 ? ord.items.reduce((sum, i) => sum + i.required_qty, 0) : 1;
+      const compQty = ord.items && ord.items.length > 0 ? ord.items.reduce((sum, i) => sum + i.completed_qty, 0) : reqQty;
+      
+      checkingAssignments.push({
+        id: `ord-verify-${ord.id}`,
+        order_id: ord.id,
+        order_number: ord.order_number,
+        customer_name: ord.customer_name,
+        order_item_id: ord.items && ord.items[0] ? ord.items[0].id : 'item-0',
+        item_name: itemDesc,
+        dimensions: itemDimensions,
+        worker_id: 'user-3',
+        worker_name: 'Factory Supervisor',
+        required_qty: reqQty,
+        completed_qty: compQty,
+        status: 'Needs Checking',
+        assigned_at: ord.created_at,
+        slip_url: ord.slip_url,
+      });
+    }
+  });
 
   const handleApprove = (asgn: WorkAssignment) => {
     try {
-      db.approveWork(asgn.id, currentUser.name);
-      alert(`Approved ${asgn.item_name} for ${asgn.order_number}! Moved to Ready for Dispatch.`);
+      if (asgn.id.startsWith('ord-verify-')) {
+        const realOrdId = asgn.order_id;
+        db.updateOrderStatus(realOrdId, 'Ready');
+        alert(`Approved Order ${asgn.order_number}! Moved to Ready for Dispatch.`);
+      } else {
+        db.approveWork(asgn.id, currentUser.name);
+        alert(`Approved ${asgn.item_name} for ${asgn.order_number}! Moved to Ready for Dispatch.`);
+      }
       onRefresh();
     } catch (err: any) {
       alert(err.message || 'Error approving work');

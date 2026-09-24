@@ -281,6 +281,26 @@ class FactoryStore {
     return this.data.orders.find((o) => o.id === id || o.order_number === id);
   }
 
+  updateOrderStatus(orderId: string, status: Order['status']) {
+    const order = this.getOrderById(orderId);
+    if (order) {
+      order.status = status;
+      if (order.items) {
+        order.items.forEach((i) => {
+          if (status === 'Ready') i.status = 'Ready';
+        });
+      }
+      this.save();
+      if (typeof window !== 'undefined') {
+        fetch(`/api/orders/${order.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'approve', orderId: order.id }),
+        }).catch(console.error);
+      }
+    }
+  }
+
   deleteOrder(orderId: string, userName?: string) {
     const ord = this.getOrderById(orderId);
     if (!ord) return;
