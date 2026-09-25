@@ -78,6 +78,9 @@ export default function Home() {
         if (data.assignments && Array.isArray(data.assignments)) {
           db.mergeAssignments(data.assignments, data.deletedAssignmentIds);
         }
+        if (data.customers && Array.isArray(data.customers)) {
+          db.mergeCustomers(data.customers, data.deletedCustomerIds);
+        }
         if (data.logs && Array.isArray(data.logs)) {
           setLogs((prev) =>
             JSON.stringify(prev) === JSON.stringify(data.logs) ? prev : data.logs
@@ -99,6 +102,7 @@ export default function Home() {
       const allOrders = db.getOrders();
       const allAssignments = db.getAssignments();
       const allLogs = db.getLogs();
+      const allCustomers = db.getCustomers();
 
       setOrders((prev) =>
         JSON.stringify(prev) === JSON.stringify(allOrders) ? prev : allOrders
@@ -111,17 +115,19 @@ export default function Home() {
       );
 
       // 3. Bidirectional Sync Relay: Push local state to server so Phone <-> Desktop syncs across isolated lambdas
-      if (allOrders.length > 0 || allAssignments.length > 0) {
-        fetch('/api/sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            orders: allOrders,
-            assignments: allAssignments,
-            logs: allLogs,
-          }),
-        }).catch(() => {});
-      }
+      fetch('/api/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orders: allOrders,
+          assignments: allAssignments,
+          customers: allCustomers,
+          logs: allLogs,
+          deletedOrderIds: (db as any).data?.deletedOrderIds || [],
+          deletedAssignmentIds: (db as any).data?.deletedAssignmentIds || [],
+          deletedCustomerIds: (db as any).data?.deletedCustomerIds || [],
+        }),
+      }).catch(() => {});
     } catch (err) {
       const localOrders = db.getOrders();
       const localAssignments = db.getAssignments();

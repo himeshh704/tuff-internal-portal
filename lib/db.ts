@@ -105,7 +105,7 @@ class FactoryStore {
     }
   }
 
-  private save() {
+  private save(pushToServer: boolean = true) {
     if (typeof window !== 'undefined') {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.data));
       localStorage.setItem('ashapuri_last_sync_ts', Date.now().toString());
@@ -114,12 +114,28 @@ class FactoryStore {
           this.channel.postMessage({ type: 'SYNC_NOW', ts: Date.now() });
         } catch (e) {}
       }
+
+      if (pushToServer) {
+        fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orders: this.data.orders,
+            assignments: this.data.workAssignments,
+            customers: this.data.customers,
+            logs: this.data.activityLogs,
+            deletedOrderIds: (this.data as any).deletedOrderIds || [],
+            deletedAssignmentIds: (this.data as any).deletedAssignmentIds || [],
+            deletedCustomerIds: (this.data as any).deletedCustomerIds || [],
+          }),
+        }).catch(() => {});
+      }
     }
   }
 
   public resetToDefault() {
     this.data = CLEAN_DATA;
-    this.save();
+    this.save(true);
   }
 
   // USERS
@@ -181,11 +197,64 @@ class FactoryStore {
   }
 
   deleteCustomer(customerId: string) {
-    this.data.customers = this.data.customers.filter((c) => c.id !== customerId);
+    if (!(this.data as any).deletedCustomerIds) {
+      (this.data as any).deletedCustomerIds = [];
+    }
+    if (!(this.data as any).deletedCustomerIds.includes(customerId)) {
+      (this.data as any).deletedCustomerIds.push(customerId);
+    }
+
+    this.data.customers = (this.data.customers || []).filter((c) => c.id !== customerId);
     this.save();
     if (typeof window !== 'undefined') {
       fetch(`/api/customers/${customerId}`, { method: 'DELETE' }).catch(console.error);
+      fetch('/api/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deletedCustomerIds: [customerId] }),
+      }).catch(console.error);
     }
+  }
+
+  mergeCustomers(serverCustomers: Customer[], serverDeletedCustomerIds?: string[]): Customer[] {
+    if (!(this.data as any).deletedCustomerIds) {
+      (this.data as any).deletedCustomerIds = [];
+    }
+
+    if (serverDeletedCustomerIds && Array.isArray(serverDeletedCustomerIds)) {
+      serverDeletedCustomerIds.forEach((id) => {
+        if (id && !(this.data as any).deletedCustomerIds.includes(id)) {
+          (this.data as any).deletedCustomerIds.push(id);
+        }
+      });
+    }
+
+    const deleted = new Set((this.data as any).deletedCustomerIds || []);
+    this.data.customers = (this.data.customers || []).filter((c) => !deleted.has(c.id));
+
+    if (!serverCustomers || serverCustomers.length === 0) {
+      this.save(false);
+      return this.data.customers;
+    }
+
+    serverCustomers = serverCustomers.filter((sc) => !deleted.has(sc.id));
+
+    const mergedMap = new Map<string, Customer>();
+    this.data.customers.forEach((c) => {
+      if (!deleted.has(c.id)) mergedMap.set(c.id, c);
+    });
+
+    serverCustomers.forEach((sc) => {
+      if (mergedMap.has(sc.id)) {
+        mergedMap.set(sc.id, { ...mergedMap.get(sc.id)!, ...sc });
+      } else {
+        mergedMap.set(sc.id, sc);
+      }
+    });
+
+    this.data.customers = Array.from(mergedMap.values());
+    this.save(false);
+    return this.data.customers;
   }
 
   // ORDERS
@@ -216,7 +285,7 @@ class FactoryStore {
     );
 
     if (!serverOrders || serverOrders.length === 0) {
-      this.save();
+      this.save(false);
       return this.data.orders;
     }
 
@@ -248,7 +317,7 @@ class FactoryStore {
     });
 
     this.data.orders = Array.from(mergedMap.values());
-    this.save();
+    this.save(false);
     return this.data.orders;
   }
 
@@ -273,7 +342,7 @@ class FactoryStore {
     );
 
     if (!serverAssignments || serverAssignments.length === 0) {
-      this.save();
+      this.save(false);
       return this.data.workAssignments;
     }
 
@@ -311,7 +380,7 @@ class FactoryStore {
     });
 
     this.data.workAssignments = Array.from(mergedMap.values());
-    this.save();
+    this.save(false);
     return this.data.workAssignments;
   }
 

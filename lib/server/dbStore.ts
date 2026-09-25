@@ -169,6 +169,18 @@ function saveDatabase(data: ServerDatabaseData) {
             assigned_at: asgn.assigned_at,
           }, { onConflict: 'id' });
         }
+
+        // Sync customers to Supabase
+        for (const cust of data.customers) {
+          await client.from('customers').upsert({
+            id: cust.id,
+            name: cust.name,
+            phone: cust.phone,
+            address: cust.address,
+            notes: cust.notes,
+            created_at: cust.created_at,
+          }, { onConflict: 'id' });
+        }
       } catch (e) {
         console.error('Supabase async sync error:', e);
       }
@@ -507,7 +519,15 @@ export const serverDb = {
     }
   },
 
-  mergeClientData: (incoming: { orders?: Order[]; assignments?: WorkAssignment[]; logs?: ActivityLog[] }) => {
+  mergeClientData: (incoming: {
+    orders?: Order[];
+    assignments?: WorkAssignment[];
+    customers?: Customer[];
+    logs?: ActivityLog[];
+    deletedOrderIds?: string[];
+    deletedAssignmentIds?: string[];
+    deletedCustomerIds?: string[];
+  }) => {
     const dbData = loadDatabase();
     const statusRank: Record<string, number> = {
       'New': 1, 'In Production': 2, 'Needs Checking': 3, 'Rework': 4, 'Ready': 5, 'Completed': 6
@@ -542,6 +562,53 @@ export const serverDb = {
           dbData.workAssignments.unshift(sa);
         }
       });
+    }
+
+    if (incoming.customers && Array.isArray(incoming.customers)) {
+      incoming.customers.forEach((sc) => {
+        const idx = dbData.customers.findIndex((c) => c.id === sc.id);
+        if (idx !== -1) {
+          dbData.customers[idx] = { ...dbData.customers[idx], ...sc };
+        } else {
+          dbData.customers.unshift(sc);
+        }
+      });
+    }
+
+    if (incoming.deletedOrderIds && Array.isArray(incoming.deletedOrderIds)) {
+      if (!(dbData as any).deletedOrderIds) (dbData as any).deletedOrderIds = [];
+      incoming.deletedOrderIds.forEach((id) => {
+        if (id && !(dbData as any).deletedOrderIds.includes(id)) {
+          (dbData as any).deletedOrderIds.push(id);
+        }
+      });
+      const delSet = new Set((dbData as any).deletedOrderIds);
+      dbData.orders = dbData.orders.filter((o) => !delSet.has(o.id) && !delSet.has(o.order_number));
+      dbData.workAssignments = dbData.workAssignments.filter(
+        (a) => !delSet.has(a.order_id) && !delSet.has(a.order_number)
+      );
+    }
+
+    if (incoming.deletedAssignmentIds && Array.isArray(incoming.deletedAssignmentIds)) {
+      if (!(dbData as any).deletedAssignmentIds) (dbData as any).deletedAssignmentIds = [];
+      incoming.deletedAssignmentIds.forEach((id) => {
+        if (id && !(dbData as any).deletedAssignmentIds.includes(id)) {
+          (dbData as any).deletedAssignmentIds.push(id);
+        }
+      });
+      const delAsgnSet = new Set((dbData as any).deletedAssignmentIds);
+      dbData.workAssignments = dbData.workAssignments.filter((a) => !delAsgnSet.has(a.id));
+    }
+
+    if (incoming.deletedCustomerIds && Array.isArray(incoming.deletedCustomerIds)) {
+      if (!(dbData as any).deletedCustomerIds) (dbData as any).deletedCustomerIds = [];
+      incoming.deletedCustomerIds.forEach((id) => {
+        if (id && !(dbData as any).deletedCustomerIds.includes(id)) {
+          (dbData as any).deletedCustomerIds.push(id);
+        }
+      });
+      const delSet = new Set((dbData as any).deletedCustomerIds);
+      dbData.customers = dbData.customers.filter((c) => !delSet.has(c.id));
     }
 
     saveDatabase(dbData);
@@ -749,9 +816,32 @@ export const serverDb = {
 
   deleteCustomer: (customerId: string) => {
     const dbData = loadDatabase();
+    if (!(dbData as any).deletedCustomerIds) {
+      (dbData as any).deletedCustomerIds = [];
+    }
+    if (!(dbData as any).deletedCustomerIds.includes(customerId)) {
+      (dbData as any).deletedCustomerIds.push(customerId);
+    }
+
     dbData.customers = dbData.customers.filter((c) => c.id !== customerId);
     saveDatabase(dbData);
+
+    if (supabaseServer && isSupabaseConfigured()) {
+      const client = supabaseServer;
+      Promise.resolve().then(async () => {
+        try {
+          await client.from('customers').delete().eq('id', customerId);
+        } catch (e) {
+          console.error('Supabase Cloud Delete Customer error:', e);
+        }
+      });
+    }
+
     return true;
+  },
+
+  getDeletedCustomerIds: (): string[] => {
+    return (loadDatabase() as any).deletedCustomerIds || [];
   },
 
   resetDataToZero: () => {

@@ -17,8 +17,17 @@ export async function GET() {
   const customers = serverDb.getCustomers();
   const deletedOrderIds = serverDb.getDeletedOrderIds();
   const deletedAssignmentIds = serverDb.getDeletedAssignmentIds();
+  const deletedCustomerIds = serverDb.getDeletedCustomerIds();
 
-  return NextResponse.json({ orders, assignments, logs, customers, deletedOrderIds, deletedAssignmentIds });
+  return NextResponse.json({
+    orders,
+    assignments,
+    logs,
+    customers,
+    deletedOrderIds,
+    deletedAssignmentIds,
+    deletedCustomerIds,
+  });
 }
 
 export async function POST(request: Request) {
@@ -35,6 +44,7 @@ export async function POST(request: Request) {
       success: true,
       orders: updated.orders,
       assignments: updated.workAssignments,
+      customers: updated.customers,
       logs: updated.activityLogs,
     });
   } catch (err: any) {
