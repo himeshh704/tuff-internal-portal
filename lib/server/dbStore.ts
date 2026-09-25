@@ -666,27 +666,85 @@ export const serverDb = {
   deleteOrder: (orderId: string) => {
     const dbData = loadDatabase();
     const ord = dbData.orders.find((o) => o.id === orderId || o.order_number === orderId);
-    dbData.orders = dbData.orders.filter((o) => o.id !== orderId && o.order_number !== orderId);
-    if (ord) {
-      dbData.workAssignments = dbData.workAssignments.filter(
-        (a) => a.order_id !== ord.id && a.order_number !== ord.order_number
-      );
-    } else {
-      dbData.workAssignments = dbData.workAssignments.filter(
-        (a) => a.order_id !== orderId && a.order_number !== orderId
-      );
+
+    const targetId = ord ? ord.id : orderId;
+    const targetOrderNumber = ord ? ord.order_number : orderId;
+
+    if (!(dbData as any).deletedOrderIds) {
+      (dbData as any).deletedOrderIds = [];
     }
+    if (targetId && !(dbData as any).deletedOrderIds.includes(targetId)) {
+      (dbData as any).deletedOrderIds.push(targetId);
+    }
+    if (targetOrderNumber && !(dbData as any).deletedOrderIds.includes(targetOrderNumber)) {
+      (dbData as any).deletedOrderIds.push(targetOrderNumber);
+    }
+
+    dbData.orders = dbData.orders.filter((o) => o.id !== targetId && o.order_number !== targetOrderNumber);
+    dbData.workAssignments = dbData.workAssignments.filter(
+      (a) => a.order_id !== targetId && a.order_number !== targetOrderNumber
+    );
+
     saveDatabase(dbData);
+
+    // Synchronously purge from Supabase Cloud DB
+    if (supabaseServer && isSupabaseConfigured()) {
+      const client = supabaseServer;
+      Promise.resolve().then(async () => {
+        try {
+          if (targetId) {
+            await client.from('orders').delete().eq('id', targetId);
+            await client.from('work_assignments').delete().eq('order_id', targetId);
+          }
+          if (targetOrderNumber) {
+            await client.from('orders').delete().eq('order_number', targetOrderNumber);
+            await client.from('work_assignments').delete().eq('order_number', targetOrderNumber);
+          }
+        } catch (e) {
+          console.error('Supabase Cloud Delete Order error:', e);
+        }
+      });
+    }
+
     return true;
   },
 
   deleteAssignment: (assignmentId: string) => {
     const dbData = loadDatabase();
+
+    if (!(dbData as any).deletedAssignmentIds) {
+      (dbData as any).deletedAssignmentIds = [];
+    }
+    if (!(dbData as any).deletedAssignmentIds.includes(assignmentId)) {
+      (dbData as any).deletedAssignmentIds.push(assignmentId);
+    }
+
     dbData.workAssignments = dbData.workAssignments.filter(
       (a) => a.id !== assignmentId && a.order_number !== assignmentId
     );
+
     saveDatabase(dbData);
+
+    if (supabaseServer && isSupabaseConfigured()) {
+      const client = supabaseServer;
+      Promise.resolve().then(async () => {
+        try {
+          await client.from('work_assignments').delete().eq('id', assignmentId);
+        } catch (e) {
+          console.error('Supabase Cloud Delete Assignment error:', e);
+        }
+      });
+    }
+
     return true;
+  },
+
+  getDeletedOrderIds: (): string[] => {
+    return (loadDatabase() as any).deletedOrderIds || [];
+  },
+
+  getDeletedAssignmentIds: (): string[] => {
+    return (loadDatabase() as any).deletedAssignmentIds || [];
   },
 
   deleteCustomer: (customerId: string) => {

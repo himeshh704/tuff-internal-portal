@@ -73,10 +73,10 @@ export default function Home() {
       if (res.ok) {
         const data = await res.json();
         if (data.orders && Array.isArray(data.orders)) {
-          db.mergeOrders(data.orders);
+          db.mergeOrders(data.orders, data.deletedOrderIds);
         }
         if (data.assignments && Array.isArray(data.assignments)) {
-          db.mergeAssignments(data.assignments);
+          db.mergeAssignments(data.assignments, data.deletedAssignmentIds);
         }
         if (data.logs && Array.isArray(data.logs)) {
           setLogs((prev) =>

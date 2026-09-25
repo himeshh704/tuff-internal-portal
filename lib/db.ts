@@ -193,12 +193,33 @@ class FactoryStore {
     return this.data.orders;
   }
 
-  mergeOrders(serverOrders: Order[]): Order[] {
-    if (!serverOrders || serverOrders.length === 0) {
-      return this.data.orders;
+  mergeOrders(serverOrders: Order[], serverDeletedOrderIds?: string[]): Order[] {
+    if (!(this.data as any).deletedOrderIds) {
+      (this.data as any).deletedOrderIds = [];
+    }
+
+    if (serverDeletedOrderIds && Array.isArray(serverDeletedOrderIds)) {
+      serverDeletedOrderIds.forEach((id) => {
+        if (id && !(this.data as any).deletedOrderIds.includes(id)) {
+          (this.data as any).deletedOrderIds.push(id);
+        }
+      });
     }
 
     const deleted = new Set((this.data as any).deletedOrderIds || []);
+
+    this.data.orders = (this.data.orders || []).filter(
+      (o) => !deleted.has(o.id) && !deleted.has(o.order_number)
+    );
+    this.data.workAssignments = (this.data.workAssignments || []).filter(
+      (a) => !deleted.has(a.order_id) && !deleted.has(a.order_number)
+    );
+
+    if (!serverOrders || serverOrders.length === 0) {
+      this.save();
+      return this.data.orders;
+    }
+
     serverOrders = serverOrders.filter((so) => !deleted.has(so.id) && !deleted.has(so.order_number));
 
     const mergedMap = new Map<string, Order>();
@@ -231,13 +252,31 @@ class FactoryStore {
     return this.data.orders;
   }
 
-  mergeAssignments(serverAssignments: WorkAssignment[]): WorkAssignment[] {
-    if (!serverAssignments || serverAssignments.length === 0) {
-      return this.data.workAssignments;
+  mergeAssignments(serverAssignments: WorkAssignment[], serverDeletedAssignmentIds?: string[]): WorkAssignment[] {
+    if (!(this.data as any).deletedAssignmentIds) {
+      (this.data as any).deletedAssignmentIds = [];
+    }
+
+    if (serverDeletedAssignmentIds && Array.isArray(serverDeletedAssignmentIds)) {
+      serverDeletedAssignmentIds.forEach((id) => {
+        if (id && !(this.data as any).deletedAssignmentIds.includes(id)) {
+          (this.data as any).deletedAssignmentIds.push(id);
+        }
+      });
     }
 
     const deletedAsgns = new Set((this.data as any).deletedAssignmentIds || []);
     const deletedOrds = new Set((this.data as any).deletedOrderIds || []);
+
+    this.data.workAssignments = (this.data.workAssignments || []).filter(
+      (a) => !deletedAsgns.has(a.id) && !deletedOrds.has(a.order_id) && !deletedOrds.has(a.order_number)
+    );
+
+    if (!serverAssignments || serverAssignments.length === 0) {
+      this.save();
+      return this.data.workAssignments;
+    }
+
     serverAssignments = serverAssignments.filter(
       (sa) => !deletedAsgns.has(sa.id) && !deletedOrds.has(sa.order_id) && !deletedOrds.has(sa.order_number)
     );
@@ -259,7 +298,6 @@ class FactoryStore {
         const finalQty = Math.max(existing.completed_qty || 0, sa.completed_qty || 0);
         const exRank = statusRank[existing.status] || 0;
         const saRank = statusRank[sa.status] || 0;
-        // If server says Approved, force Approved so supervisor terminal clears pending task instantly
         const finalStatus = sa.status === 'Approved' ? 'Approved' : (saRank >= exRank ? sa.status : existing.status);
         mergedMap.set(sa.id, {
           ...existing,

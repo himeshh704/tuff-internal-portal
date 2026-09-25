@@ -15,8 +15,10 @@ export async function GET() {
   const assignments = serverDb.getAssignments();
   const logs = serverDb.getLogs();
   const customers = serverDb.getCustomers();
+  const deletedOrderIds = serverDb.getDeletedOrderIds();
+  const deletedAssignmentIds = serverDb.getDeletedAssignmentIds();
 
-  return NextResponse.json({ orders, assignments, logs, customers });
+  return NextResponse.json({ orders, assignments, logs, customers, deletedOrderIds, deletedAssignmentIds });
 }
 
 export async function POST(request: Request) {
