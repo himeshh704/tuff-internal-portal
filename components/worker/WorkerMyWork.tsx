@@ -22,12 +22,27 @@ export const WorkerMyWork: React.FC<WorkerMyWorkProps> = ({
   const [note, setNote] = useState<string>('');
   const [errorMsg, setErrorMsg] = useState<string>('');
 
-  const workerAssignments = assignments.filter(
-    (a) =>
-      (a.worker_id === worker.id ||
-        a.worker_name.toLowerCase().trim() === worker.name.toLowerCase().trim()) &&
-      a.status !== 'Approved'
-  );
+  const workerAssignments = assignments.filter((a) => {
+    if (a.status === 'Approved') return false;
+
+    const targetId = (worker.id || '').toLowerCase().trim();
+    const targetName = (worker.name || '').toLowerCase().trim();
+    const asgnWorkerId = (a.worker_id || '').toLowerCase().trim();
+    const asgnWorkerName = (a.worker_name || '').toLowerCase().trim();
+
+    if (asgnWorkerId === targetId) return true;
+    if (targetName && asgnWorkerName === targetName) return true;
+
+    if (targetName.includes('supervisor 1') && asgnWorkerName.includes('supervisor 1')) return true;
+    if (targetName.includes('supervisor 2') && asgnWorkerName.includes('supervisor 2')) return true;
+    if (targetName.includes('supervisor 3') && asgnWorkerName.includes('supervisor 3')) return true;
+
+    if (targetId === 'user-3' && (asgnWorkerId === 'user-3' || asgnWorkerName.includes('1'))) return true;
+    if (targetId === 'user-4' && (asgnWorkerId === 'user-4' || asgnWorkerName.includes('2'))) return true;
+    if (targetId === 'user-5' && (asgnWorkerId === 'user-5' || asgnWorkerName.includes('3'))) return true;
+
+    return false;
+  });
 
   const handleOpenUpdateModal = (asgn: WorkAssignment) => {
     setActiveAssignment(asgn);

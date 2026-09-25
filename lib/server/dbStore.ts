@@ -347,28 +347,14 @@ export const serverDb = {
       (a) => a.id === assignmentId || a.order_number === assignmentId || a.order_id === assignmentId
     );
 
-    if (!asgn && dbData.workAssignments.length > 0) {
-      asgn = dbData.workAssignments[0];
+    if (!asgn) {
+      asgn = dbData.workAssignments.find(
+        (a) => a.order_item_id === assignmentId || (a.worker_id === updaterId && a.status !== 'Approved')
+      );
     }
 
     if (!asgn) {
-      // Create a fallback assignment record to prevent loss of shop-floor progress
-      asgn = {
-        id: assignmentId,
-        order_id: 'ord-fallback',
-        order_number: 'AT-2026-00001',
-        customer_name: 'Factory Line Order',
-        order_item_id: 'item-fallback',
-        item_name: 'Toughened Glass Item',
-        dimensions: 'Standard Dimensions',
-        worker_id: updaterId,
-        worker_name: updaterName,
-        required_qty: 100,
-        completed_qty: 0,
-        status: 'In Progress',
-        assigned_at: new Date().toISOString(),
-      };
-      dbData.workAssignments.unshift(asgn);
+      throw new Error(`Assignment not found for ID ${assignmentId}`);
     }
 
     const newCompleted = Math.min(asgn.required_qty, (asgn.completed_qty || 0) + addedQty);
